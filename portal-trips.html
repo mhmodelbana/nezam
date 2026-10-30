@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f6f1">
+  <meta name="description" content="حجز ومتابعة رحلات Vota Travel اليومية.">
+  <title>حجز الرحلات | Vota Travel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="supabase-data.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body class="portal-page">
+  <header class="topbar">
+    <a class="brand" href="portal.html" aria-label="العودة إلى بوابة الطالب"><span class="brand-mark" aria-hidden="true">v.</span><span>Vota <strong>Travel</strong></span></a>
+    <div class="date-time" aria-label="التاريخ والوقت"><span id="current-date"></span><span class="date-time-divider" aria-hidden="true"></span><time id="current-time"></time></div>
+    <a class="logout-link" href="lojin.html"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8 3.5H4.5v13H8m3-3 3.5-3.5L11 6.5M7 10h8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>تسجيل الخروج</span></a>
+  </header>
+  <main class="portal-content" id="student-portal" data-portal-section="trips">
+    <p class="portal-message" id="portal-message" role="status" hidden></p>
+    <section class="portal-password-panel" id="portal-password-section" hidden>
+      <span class="eyebrow"><span></span> خطوة مطلوبة</span><h1>أنشئ كلمة مرور جديدة</h1><p>غيّر كلمة المرور المؤقتة قبل متابعة ملفك.</p>
+      <form class="portal-password-form" id="portal-password-form">
+        <label class="form-field"><span>كلمة المرور الجديدة</span><input name="newPassword" type="password" minlength="10" autocomplete="new-password" required></label>
+        <label class="form-field"><span>تأكيد كلمة المرور</span><input name="confirmPassword" type="password" minlength="10" autocomplete="new-password" required></label>
+        <p class="form-error" id="portal-password-error" role="alert"></p><button class="primary-button" type="submit">حفظ كلمة المرور ومتابعة</button>
+      </form>
+    </section>
+    <section id="portal-profile" hidden>
+      <a class="back-link portal-back-link" href="portal.html">العودة لأقسام البوابة</a>
+      <div class="portal-section-heading"><span class="eyebrow"><span></span> مشاويرك مع Vota</span><h1>تسجيل الرحلات</h1><p>اختَر اتجاه الرحلة، ثم سجّل أو ألغِ تسجيلك من بطاقة الموعد.</p></div>
+      <section class="portal-card" aria-labelledby="portal-trips-title">
+        <div class="portal-card-heading trip-direction-heading"><div><span class="panel-kicker">المواعيد اليومية</span><h2 id="portal-trips-title">اختَر اتجاه الرحلة</h2></div></div>
+        <div class="trip-direction-picker" role="group" aria-label="اتجاه الرحلة">
+          <button class="trip-direction-choice" type="button" data-trip-direction="outbound" aria-pressed="true">ذهاب للجامعة</button>
+          <button class="trip-direction-choice" type="button" data-trip-direction="return" aria-pressed="false">عودة</button>
+        </div>
+        <div class="trip-schedule-cards" id="trip-schedule-cards" aria-live="polite" hidden></div>
+        <p class="trip-empty" id="trip-schedules-empty" hidden>لا توجد مواعيد رحلات متاحة حاليًا. تابع الصفحة لاحقًا.</p>
+        <p class="trip-booking-success" id="trip-booking-success" role="status" hidden></p>
+        <p class="form-error trip-booking-error" id="trip-request-error" role="alert" hidden></p>
+       
+    </section>
+  </main>
+</body>
+</html>

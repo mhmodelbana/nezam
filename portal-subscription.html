@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f6f1">
+  <meta name="description" content="الاشتراك والمدفوعات في بوابة Vota Travel.">
+  <title>اشتراكي | Vota Travel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="supabase-data.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body class="portal-page">
+  <header class="topbar">
+    <a class="brand" href="portal.html" aria-label="العودة إلى بوابة الطالب"><span class="brand-mark" aria-hidden="true">v.</span><span>Vota <strong>Travel</strong></span></a>
+    <div class="date-time" aria-label="التاريخ والوقت"><span id="current-date"></span><span class="date-time-divider" aria-hidden="true"></span><time id="current-time"></time></div>
+    <a class="logout-link" href="lojin.html"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8 3.5H4.5v13H8m3-3 3.5-3.5L11 6.5M7 10h8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>تسجيل الخروج</span></a>
+  </header>
+  <main class="portal-content" id="student-portal" data-portal-section="subscription">
+    <p class="portal-message" id="portal-message" role="status" hidden></p>
+    <section class="portal-password-panel" id="portal-password-section" hidden>
+      <span class="eyebrow"><span></span> خطوة مطلوبة</span><h1>أنشئ كلمة مرور جديدة</h1><p>غيّر كلمة المرور المؤقتة قبل متابعة ملفك.</p>
+      <form class="portal-password-form" id="portal-password-form">
+        <label class="form-field"><span>كلمة المرور الجديدة</span><input name="newPassword" type="password" minlength="10" autocomplete="new-password" required></label>
+        <label class="form-field"><span>تأكيد كلمة المرور</span><input name="confirmPassword" type="password" minlength="10" autocomplete="new-password" required></label>
+        <p class="form-error" id="portal-password-error" role="alert"></p><button class="primary-button" type="submit">حفظ كلمة المرور ومتابعة</button>
+      </form>
+    </section>
+    <section id="portal-profile" hidden>
+      <a class="back-link portal-back-link" href="portal.html">العودة لأقسام البوابة</a>
+      <div class="portal-section-heading"><span class="eyebrow"><span></span> الحساب الدراسي</span><h1>اشتراكي</h1><p>تابع حالة اشتراكك والمدفوعات المسجلة.</p></div>
+      <section class="portal-card" aria-labelledby="portal-subscription-title">
+        <div class="portal-card-heading"><h2 id="portal-subscription-title">تفاصيل الاشتراك</h2></div>
+        <dl class="portal-details">
+          <div><dt>الطالب</dt><dd id="portal-student-name"></dd></div><div><dt>الترم</dt><dd id="portal-term"></dd></div>
+          <div><dt>قيمة الاشتراك</dt><dd id="portal-price"></dd></div><div><dt>حالة السداد</dt><dd id="portal-payment-status"></dd></div>
+          <div><dt>إجمالي المدفوع</dt><dd id="portal-paid"></dd></div><div><dt>المتبقي</dt><dd id="portal-remaining"></dd></div>
+        </dl>
+        <div class="portal-payment-history"><h3>سجل الدفعات</h3><p id="portal-no-payments">لا توجد دفعات مسجلة.</p><ul id="portal-payment-history"></ul></div>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

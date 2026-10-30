@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f6f1">
+  <meta name="description" content="إعداد الفصول الدراسية ومواعيد تشغيل رحلات Vota Travel.">
+  <title>الإعدادات | Vota Travel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="supabase-data.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body class="settings-page">
+  <header class="topbar">
+    <a class="brand" href="dashboard.html" aria-label="العودة للوحة تحكم Vota Travel">
+      <span class="brand-mark" aria-hidden="true">v.</span>
+      <span>Vota <strong>Travel</strong></span>
+    </a>
+    <div class="date-time" aria-label="التاريخ والوقت">
+      <span id="current-date"></span>
+      <span class="date-time-divider" aria-hidden="true"></span>
+      <time id="current-time"></time>
+    </div>
+    <a class="logout-link" href="lojin.html">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8 3.5H4.5v13H8m3-3 3.5-3.5L11 6.5M7 10h8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>تسجيل الخروج</span>
+    </a>
+  </header>
+
+  <main class="settings-content">
+    <a class="back-link" href="dashboard.html">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M15.5 10h-11m0 0 4.5-4.5M4.5 10 9 14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      لوحة التحكم
+    </a>
+
+    <section class="page-heading settings-heading">
+      <div>
+        <span class="eyebrow"><span></span> إعدادات الخدمة</span>
+        <h1>الإعدادات</h1>
+        <p>حدد أسعار الفصول الدراسية ومواعيد التشغيل اليومية لخدمة Vota Travel.</p>
+      </div>
+    </section>
+
+    <section class="subscription-panel settings-terms-panel" aria-labelledby="terms-title">
+      <div class="subscription-panel-heading">
+        <div>
+          <span class="panel-kicker">الاشتراكات الدراسية</span>
+          <h2 id="terms-title">بيانات الترم والاشتراك</h2>
+        </div>
+        <span class="panel-icon term-panel-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="16" rx="3" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 3.5v3m9-3v3M3.5 9.5h17M8 13h3m-3 4h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+      </div>
+      <form class="term-form settings-term-form" id="term-form">
+        <label class="subscription-field">
+          <span>اسم الترم <b>*</b></span>
+          <input name="name" type="text" placeholder="مثال: الترم الأول" maxlength="60" required>
+        </label>
+        <label class="subscription-field">
+          <span>العام الدراسي <b>*</b></span>
+          <input name="academicYear" type="text" placeholder="مثال: 2026 / 2027" maxlength="20" required>
+        </label>
+        <label class="subscription-field">
+          <span>سعر الاشتراك للترم <b>*</b></span>
+          <span class="currency-input"><input name="price" type="number" min="0.01" max="10000000" step="0.01" placeholder="0.00" required><span>ج.م</span></span>
+        </label>
+        <label class="subscription-field">
+          <span>بداية الترم <b>*</b></span>
+          <input name="startDate" type="date" required>
+        </label>
+        <label class="subscription-field">
+          <span>نهاية الترم <b>*</b></span>
+          <input name="endDate" type="date" required>
+        </label>
+        <button class="primary-button term-submit" type="submit">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 4v12m6-6H4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          إضافة الترم
+        </button>
+      </form>
+      <p class="subscription-error" id="term-error" role="alert"></p>
+      <div class="term-list-heading">
+        <h3>الترمات المحددة</h3>
+        <span id="term-count">٠ ترم</span>
+      </div>
+      <div class="term-list" id="term-list"></div>
+      <p class="subscription-empty" id="terms-empty">أضف أول ترم وحدد سعر الاشتراك.</p>
+      <p class="subscription-error storage-error" id="settings-storage-error" role="alert" hidden></p>
+    </section>
+
+    <section class="trip-schedule-manager settings-trip-schedule-manager" aria-labelledby="trip-schedule-title">
+      <header class="trip-schedule-manager-heading">
+        <div>
+          <span class="panel-kicker">إعداد التشغيل اليومي</span>
+          <h2 id="trip-schedule-title">مواعيد الرحلات</h2>
+          <p>المواعيد النشطة تظهر للطلاب كل يوم، ويمكنك تعديلها أو إيقافها في أي وقت.</p>
+        </div>
+      </header>
+      <form class="trip-schedule-form" id="trip-schedule-form">
+        <input type="hidden" name="scheduleId">
+        <label><span>نوع الرحلة</span>
+          <select name="direction" required>
+            <option value="outbound">ذهاب للجامعة</option>
+            <option value="return">عودة</option>
+          </select>
+        </label>
+        <label><span>وقت الرحلة</span><input name="time" type="time" required></label>
+        <div class="trip-schedule-form-actions">
+          <button class="primary-button" type="submit" id="save-trip-schedule">إضافة الموعد</button>
+          <button class="secondary-button" type="button" id="cancel-trip-schedule-edit" hidden>إلغاء التعديل</button>
+        </div>
+      </form>
+      <p class="form-error trip-schedule-error" id="trip-schedule-error" role="alert" hidden></p>
+      <div class="trip-schedule-table-wrap">
+        <table class="trip-schedule-table">
+          <thead><tr><th>نوع الرحلة</th><th>الوقت</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
+          <tbody id="admin-trip-schedule-rows"></tbody>
+        </table>
+        <div class="trip-admin-empty" id="admin-trip-schedules-empty">
+          <strong>لا توجد مواعيد مضافة</strong>
+          <p>أضف مواعيد الرحلات ليتمكن الطلاب من الحجز منها.</p>
+        </div>
+      </div>
+      <p class="subscription-error storage-error" id="trip-schedule-access-error" role="alert" hidden></p>
+    </section>
+  </main>
+
+  <dialog class="payment-dialog" id="term-price-dialog" aria-labelledby="term-price-dialog-title">
+    <form class="payment-form" id="term-price-form">
+      <div class="dialog-heading">
+        <div>
+          <span class="panel-kicker">تحديث السعر</span>
+          <h2 id="term-price-dialog-title">تعديل بيانات الترم</h2>
+        </div>
+        <button class="icon-button" id="close-term-price-dialog" type="button" aria-label="إغلاق">×</button>
+      </div>
+      <p class="payment-context" id="term-price-context"></p>
+      <label class="subscription-field">
+        <span>السعر الجديد <b>*</b></span>
+        <span class="currency-input"><input name="price" type="number" min="0.01" max="10000000" step="0.01" required placeholder="0.00"><span>ج.م</span></span>
+      </label>
+      <label class="subscription-field">
+        <span>بداية الترم <b>*</b></span>
+        <input name="startDate" type="date" required>
+      </label>
+      <label class="subscription-field">
+        <span>نهاية الترم <b>*</b></span>
+        <input name="endDate" type="date" required>
+      </label>
+      <p class="subscription-hint">تغيير التواريخ يحدّث مواعيد الاشتراكات المرتبطة بهذا الترم، دون تغيير أسعارها المسجلة.</p>
+      <p class="subscription-error" id="term-price-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancel-term-price" type="button">إلغاء</button>
+        <button class="primary-button" type="submit">حفظ السعر</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

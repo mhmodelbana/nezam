@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f6f1">
+  <meta name="description" content="ملف طالب Vota Travel وبيانات اشتراكه.">
+  <title>ملف الطالب | Vota Travel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="supabase-data.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body class="student-profile-page">
+  <header class="topbar">
+    <a class="brand" href="dashboard.html" aria-label="العودة للوحة تحكم Vota Travel">
+      <span class="brand-mark" aria-hidden="true">v.</span>
+      <span>Vota <strong>Travel</strong></span>
+    </a>
+    <div class="date-time" aria-label="التاريخ والوقت">
+      <span id="current-date"></span>
+      <span class="date-time-divider" aria-hidden="true"></span>
+      <time id="current-time"></time>
+    </div>
+    <a class="logout-link" href="lojin.html">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8 3.5H4.5v13H8m3-3 3.5-3.5L11 6.5M7 10h8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>تسجيل الخروج</span>
+    </a>
+  </header>
+
+  <main class="student-profile-content">
+    <a class="back-link" href="students.html">العودة لإدارة الطلاب</a>
+    <p class="student-profile-message" id="student-profile-message" role="status" hidden></p>
+    <section id="student-profile" hidden>
+      <p class="print-document-label">Vota Travel | ملف بيانات الطالب</p>
+      <header class="student-profile-heading">
+        <div>
+          <span class="eyebrow"><span></span> الملف الشخصي للطالب</span>
+          <h1 id="profile-name"></h1>
+          <p>اسم المستخدم: <strong id="profile-code" dir="ltr"></strong></p>
+        </div>
+        <div class="student-profile-actions">
+          <button class="secondary-button" id="print-student-file" type="button">طباعة ملف الطالب</button>
+          <a class="primary-button" id="profile-edit" href="#">تعديل البيانات</a>
+        </div>
+      </header>
+
+      <section class="portal-card" aria-labelledby="profile-details-title">
+        <div class="portal-card-heading"><h2 id="profile-details-title">البيانات الأساسية والتواصل</h2></div>
+        <dl class="portal-details">
+          <div><dt>رقم الهاتف</dt><dd id="profile-phone"></dd></div>
+          <div><dt>منطقة الركوب</dt><dd id="profile-pickup"></dd></div>
+          <div><dt>الجامعة</dt><dd id="profile-university"></dd></div>
+          <div><dt>الكلية / التخصص</dt><dd id="profile-faculty"></dd></div>
+          <div><dt>السنة الدراسية</dt><dd id="profile-study-year"></dd></div>
+          <div><dt>رقم ولي الأمر</dt><dd id="profile-emergency-phone"></dd></div>
+          <div><dt>حالة الطالب</dt><dd id="profile-status"></dd></div>
+          <div><dt>حالة حساب البوابة</dt><dd id="profile-account-status"></dd></div>
+          <div><dt>بداية الاشتراك</dt><dd id="profile-subscription-start"></dd></div>
+          <div><dt>نهاية الاشتراك</dt><dd id="profile-subscription-end"></dd></div>
+          <div><dt>تاريخ التسجيل</dt><dd id="profile-created-at"></dd></div>
+          <div><dt>آخر تعديل</dt><dd id="profile-updated-at"></dd></div>
+          <div class="portal-detail-wide"><dt>ملاحظات</dt><dd id="profile-notes"></dd></div>
+        </dl>
+      </section>
+
+      <section class="portal-card" aria-labelledby="profile-subscriptions-title">
+        <div class="portal-card-heading"><h2 id="profile-subscriptions-title">الاشتراكات والمدفوعات</h2></div>
+        <div class="profile-subscriptions-wrap">
+          <table class="profile-subscriptions">
+            <thead>
+              <tr><th>الترم</th><th>بداية الاشتراك</th><th>نهاية الاشتراك</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>آخر دفعة</th><th>طريقة الدفع</th><th>الحالة</th></tr>
+            </thead>
+            <tbody id="profile-subscription-rows"></tbody>
+          </table>
+          <p id="profile-no-subscriptions">لا توجد اشتراكات مسجلة لهذا الطالب.</p>
+        </div>
+        <div class="portal-payment-history">
+          <h3>سجل الدفعات</h3>
+          <ul id="profile-payment-history"></ul>
+          <p id="profile-no-payments">لا توجد دفعات مسجلة.</p>
+        </div>
+      </section>
+
+      <section class="portal-card" id="profile-trips" aria-labelledby="profile-trips-title">
+        <div class="portal-card-heading"><h2 id="profile-trips-title">طلبات الرحلات</h2></div>
+        <div class="profile-trips-list" id="profile-trip-requests"></div>
+        <p class="profile-no-trips" id="profile-no-trips">لا توجد طلبات رحلات لهذا الطالب.</p>
+        <p class="storage-message" id="profile-trip-error" role="alert" hidden></p>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

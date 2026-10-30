@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f6f1">
+  <meta name="description" content="متابعة اشتراكات طلاب Vota Travel وتحصيل المدفوعات.">
+  <title>الاشتراكات | Vota Travel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="supabase-data.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body class="subscriptions-page">
+  <header class="topbar">
+    <a class="brand" href="dashboard.html" aria-label="العودة للوحة تحكم Vota Travel">
+      <span class="brand-mark" aria-hidden="true">v.</span>
+      <span>Vota <strong>Travel</strong></span>
+    </a>
+    <div class="date-time" aria-label="التاريخ والوقت">
+      <span id="current-date"></span>
+      <span class="date-time-divider" aria-hidden="true"></span>
+      <time id="current-time"></time>
+    </div>
+    <a class="logout-link" href="lojin.html">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8 3.5H4.5v13H8m3-3 3.5-3.5L11 6.5M7 10h8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>تسجيل الخروج</span>
+    </a>
+  </header>
+
+  <main class="subscriptions-content">
+    <a class="back-link" href="dashboard.html">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M15.5 10h-11m0 0 4.5-4.5M4.5 10 9 14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      لوحة التحكم
+    </a>
+
+    <section class="page-heading">
+      <div>
+        <span class="eyebrow"><span></span> إدارة الخدمة</span>
+        <h1>الاشتراكات</h1>
+        <p>تابع اشتراكات الطلاب وسجّل الدفعات وتعرّف على المبالغ المتبقية.</p>
+      </div>
+    </section>
+    <section class="subscription-stats" aria-label="ملخص الاشتراكات">
+      <article class="subscription-stat">
+        <span class="stat-icon stat-icon-green" aria-hidden="true">↗</span>
+        <span class="stat-label">اشتراكات مسجلة</span>
+        <strong id="total-subscriptions">٠</strong>
+      </article>
+      <article class="subscription-stat">
+        <span class="stat-icon stat-icon-purple" aria-hidden="true">ج</span>
+        <span class="stat-label">إجمالي المستحق</span>
+        <strong id="total-due">٠ ج.م</strong>
+      </article>
+      <article class="subscription-stat">
+        <span class="stat-icon stat-icon-blue" aria-hidden="true">✓</span>
+        <span class="stat-label">إجمالي المحصل</span>
+        <strong id="total-collected">٠ ج.م</strong>
+      </article>
+      <article class="subscription-stat">
+        <span class="stat-icon stat-icon-amber" aria-hidden="true">…</span>
+        <span class="stat-label">المتبقي للتحصيل</span>
+        <strong id="total-remaining">٠ ج.م</strong>
+      </article>
+    </section>
+
+    <section class="subscription-panel subscriptions-table-panel" aria-labelledby="subscriptions-list-title">
+      <div class="subscription-panel-heading table-panel-heading">
+        <div>
+          <span class="panel-kicker">المتابعة والتحصيل</span>
+          <h2 id="subscriptions-list-title">اشتراكات الطلاب</h2>
+        </div>
+        <label class="subscription-search">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" stroke-width="1.6"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span class="visually-hidden">البحث في الاشتراكات</span>
+          <input id="subscription-search" type="search" placeholder="ابحث باسم الطالب أو الترم..." autocomplete="off">
+        </label>
+      </div>
+      <div class="subscriptions-table-wrap">
+        <table class="subscriptions-table" id="subscriptions-table">
+          <thead>
+            <tr>
+              <th scope="col">الطالب</th>
+              <th scope="col">الترم</th>
+              <th scope="col">بداية الاشتراك</th>
+              <th scope="col">نهاية الاشتراك</th>
+              <th scope="col">السعر</th>
+              <th scope="col">المدفوع</th>
+              <th scope="col">المتبقي</th>
+              <th scope="col">حالة السداد</th>
+              <th scope="col"><span class="visually-hidden">إجراءات</span></th>
+            </tr>
+          </thead>
+          <tbody id="subscription-rows"></tbody>
+        </table>
+        <div class="subscriptions-empty" id="subscriptions-empty">
+          <span class="subscriptions-empty-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="29" fill="#F2EFFA"/><rect x="17" y="15" width="30" height="36" rx="5" fill="#fff" stroke="#8877B2" stroke-width="2"/><path d="M24 25h16m-16 7h16m-16 7h9" stroke="#8877B2" stroke-width="2" stroke-linecap="round"/><circle cx="44" cy="44" r="10" fill="#D9EF78"/><path d="M44 39v10m-5-5h10" stroke="#214F3A" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <strong id="subscriptions-empty-title">لا توجد اشتراكات مسجلة</strong>
+          <p id="subscriptions-empty-description">ستظهر اشتراكات الطلاب هنا لمتابعة السداد والدفعات.</p>
+        </div>
+      </div>
+      <p class="subscription-error storage-error" id="subscriptions-storage-error" role="alert" hidden></p>
+    </section>
+  </main>
+
+  <dialog class="payment-dialog" id="payment-dialog" aria-labelledby="payment-dialog-title">
+    <form class="payment-form" id="payment-form">
+      <div class="dialog-heading">
+        <div>
+          <span class="panel-kicker">تحديث الحساب</span>
+          <h2 id="payment-dialog-title">تسجيل دفعة</h2>
+        </div>
+        <button class="icon-button" id="close-payment-dialog" type="button" aria-label="إغلاق">×</button>
+      </div>
+      <p class="payment-context" id="payment-context"></p>
+      <div class="payment-history" id="payment-history"></div>
+      <label class="subscription-field">
+        <span>مبلغ الدفعة <b>*</b></span>
+        <span class="currency-input"><input name="amount" type="number" min="0.01" step="0.01" required placeholder="0.00"><span>ج.م</span></span>
+      </label>
+      <label class="subscription-field payment-method-field">
+        <span>طريقة الدفع</span>
+        <select name="method">
+          <option value="cash">نقدي</option>
+          <option value="transfer">تحويل بنكي / محفظة</option>
+          <option value="other">أخرى</option>
+        </select>
+      </label>
+      <p class="subscription-error" id="payment-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancel-payment" type="button">إلغاء</button>
+        <button class="primary-button" type="submit">حفظ الدفعة</button>
+      </div>
+    </form>
+  </dialog>
+
+</body>
+</html>

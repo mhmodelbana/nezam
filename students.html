@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f6f1">
+  <meta name="description" content="إدارة طلاب Vota Travel ومتابعة بياناتهم واشتراكاتهم.">
+  <title>إدارة الطلاب | Vota Travel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="supabase-data.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body class="students-page">
+  <header class="topbar">
+    <a class="brand" href="dashboard.html" aria-label="العودة للوحة تحكم Vota Travel">
+      <span class="brand-mark" aria-hidden="true">v.</span>
+      <span>Vota <strong>Travel</strong></span>
+    </a>
+    <div class="date-time" aria-label="التاريخ والوقت">
+      <span id="current-date"></span>
+      <span class="date-time-divider" aria-hidden="true"></span>
+      <time id="current-time"></time>
+    </div>
+    <a class="logout-link" href="lojin.html">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M8 3.5H4.5v13H8m3-3 3.5-3.5L11 6.5M7 10h8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>تسجيل الخروج</span>
+    </a>
+  </header>
+
+  <main class="page-content">
+    <a class="back-link" href="dashboard.html">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M15.5 10h-11m0 0 4.5-4.5M4.5 10 9 14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      لوحة التحكم
+    </a>
+
+    <section class="page-heading" aria-labelledby="page-title">
+      <div>
+        <span class="eyebrow"><span></span> إدارة الخدمة</span>
+        <h1 id="page-title">إدارة الطلاب</h1>
+        <p>إدارة ملفات الطلاب وبياناتهم الدراسية والاشتراكات وحسابات البوابة.</p>
+      </div>
+      <button class="primary-button" id="open-student-form" type="button">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 4v12m6-6H4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        إضافة طالب
+      </button>
+    </section>
+
+    <p class="student-term-notice" id="student-term-notice" hidden>
+      لازم تضيف ترم وسعره الأول من <a href="settings.html">صفحة الإعدادات</a>.
+    </p>
+    <section class="student-stat-grid" aria-label="ملخص الطلاب">
+      <article class="student-stat-card">
+        <span class="student-stat-icon student-stat-icon-green" aria-hidden="true">♙</span>
+        <span class="student-stat-label">إجمالي الطلاب</span>
+        <strong id="student-count">٠</strong>
+        <small>كل الملفات المسجلة</small>
+      </article>
+      <article class="student-stat-card">
+        <span class="student-stat-icon student-stat-icon-blue" aria-hidden="true">✓</span>
+        <span class="student-stat-label">طلاب نشطون</span>
+        <strong id="active-student-count">٠</strong>
+        <small>حساباتهم فعالة</small>
+      </article>
+      <article class="student-stat-card">
+        <span class="student-stat-icon student-stat-icon-amber" aria-hidden="true">ج</span>
+        <span class="student-stat-label">مستحقات مفتوحة</span>
+        <strong id="student-balance-total">٠ ج.م</strong>
+        <small>إجمالي المتبقي على الطلاب</small>
+      </article>
+      <article class="student-stat-card">
+        <span class="student-stat-icon student-stat-icon-purple" aria-hidden="true">▤</span>
+        <span class="student-stat-label">ملفات مؤرشفة</span>
+        <strong id="archived-student-count">٠</strong>
+        <small>محفوظة للرجوع إليها</small>
+      </article>
+    </section>
+
+    <section class="students-panel" aria-labelledby="students-list-title">
+      <div class="panel-heading">
+        <div>
+          <h2 id="students-list-title">قائمة الطلاب</h2>
+          <p id="student-list-caption">تابع البيانات والسداد وإدارة ملفات الطلاب.</p>
+        </div>
+      </div>
+      <div class="student-view-tabs" role="tablist" aria-label="عرض ملفات الطلاب">
+        <button class="student-view-tab is-active" id="active-students-tab" type="button" role="tab" aria-selected="true" data-student-view="active">
+          الطلاب الحاليون <span id="active-tab-count">٠</span>
+        </button>
+        <button class="student-view-tab" id="archived-students-tab" type="button" role="tab" aria-selected="false" data-student-view="archived">
+          الأرشيف <span id="archived-tab-count">٠</span>
+        </button>
+      </div>
+      <div class="student-toolbar">
+        <label class="search-box">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" stroke-width="1.6"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span class="visually-hidden">البحث في ملفات الطلاب</span>
+          <input id="student-search" type="search" placeholder="كود، هاتف، ولي أمر، جامعة، كلية أو منطقة..." autocomplete="off">
+        </label>
+        <label class="student-filter">
+          <span class="visually-hidden">تصفية حسب حالة الطالب</span>
+          <select id="student-status-filter">
+            <option value="">كل الحالات</option>
+            <option value="active">نشط</option>
+            <option value="pending">بانتظار التفعيل</option>
+            <option value="paused">متوقف مؤقتًا</option>
+            <option value="withdrawn">منسحب</option>
+            <option value="expired">منتهي الاشتراك</option>
+            <option value="inactive">موقوف</option>
+          </select>
+        </label>
+        <label class="student-filter">
+          <span class="visually-hidden">تصفية حسب السداد</span>
+          <select id="student-payment-filter">
+            <option value="">كل حالات السداد</option>
+            <option value="paid">مدفوع</option>
+            <option value="partial">مدفوع جزئيًا</option>
+            <option value="unpaid">غير مدفوع</option>
+          </select>
+        </label>
+        <label class="student-filter">
+          <span class="visually-hidden">تصفية حسب الترم</span>
+          <select id="student-term-filter">
+            <option value="">كل الترمات</option>
+          </select>
+        </label>
+        <label class="student-filter student-sort">
+          <span class="visually-hidden">ترتيب القائمة</span>
+          <select id="student-sort">
+            <option value="newest">الأحدث تسجيلًا</option>
+            <option value="oldest">الأقدم تسجيلًا</option>
+            <option value="name">الاسم أبجديًا</option>
+          </select>
+        </label>
+        <button class="secondary-button export-students-button" id="export-students" type="button">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 13v3h12v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          تصدير القائمة
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table id="students-table">
+          <thead>
+            <tr>
+              <th scope="col">الطالب</th>
+              <th scope="col">التواصل</th>
+              <th scope="col">البيانات الدراسية</th>
+              <th scope="col">منطقة الركوب</th>
+              <th scope="col">الترم</th>
+              <th scope="col">الإجمالي</th>
+              <th scope="col">المدفوع</th>
+              <th scope="col">المتبقي</th>
+              <th scope="col">آخر دفعة</th>
+              <th scope="col">الحالة</th>
+              <th scope="col"><span class="visually-hidden">إجراءات الملف</span></th>
+            </tr>
+          </thead>
+          <tbody id="student-rows"></tbody>
+        </table>
+        <div class="empty-state" id="empty-state">
+          <span class="empty-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="32" r="29" fill="#F0F4E9"/>
+              <circle cx="32" cy="25" r="9" fill="#6F9470"/>
+              <path d="M15 49c1.2-9.2 7.8-14 17-14s15.8 4.8 17 14" fill="#6F9470"/>
+              <circle cx="49" cy="15" r="9" fill="#D9EF78"/>
+              <path d="M49 11v8m-4-4h8" stroke="#214F3A" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <strong id="empty-title">لسه مفيش طلاب</strong>
+          <p id="empty-description">ابدأ بإضافة أول طالب، وسجّل بياناته ومكان الركوب.</p>
+          <button class="secondary-button" id="empty-add-button" type="button">إضافة أول طالب</button>
+        </div>
+      </div>
+      <p class="storage-message" id="storage-message" role="status" aria-live="polite" hidden></p>
+    </section>
+  </main>
+
+  <dialog class="student-dialog" id="student-dialog" aria-labelledby="dialog-title">
+    <form class="student-form" id="student-form">
+      <div class="dialog-heading">
+        <div>
+          <span class="eyebrow"><span></span> بيانات الخدمة</span>
+          <h2 id="dialog-title">إضافة طالب جديد</h2>
+        </div>
+        <button class="icon-button" id="close-dialog" type="button" aria-label="إغلاق">×</button>
+      </div>
+
+      <div class="form-grid">
+        <label class="form-field">
+          <span>اسم الطالب <b>*</b></span>
+          <input name="name" type="text" autocomplete="name" placeholder="الاسم بالكامل" maxlength="100" required>
+        </label>
+        <label class="form-field">
+          <span>رقم هاتف الطالب <b>*</b></span>
+          <input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="01xxxxxxxxx" maxlength="20" required>
+        </label>
+        <label class="form-field form-field-wide">
+          <span>عنوان / منطقة الركوب <b>*</b></span>
+          <input name="pickup" type="text" placeholder="البلد أو المنطقة ونقطة الركوب" maxlength="160" required>
+        </label>
+        <label class="form-field">
+          <span>الجامعة</span>
+          <input name="university" type="text" placeholder="اسم الجامعة" maxlength="100">
+        </label>
+        <label class="form-field">
+          <span>الكلية / التخصص</span>
+          <input name="faculty" type="text" placeholder="الكلية أو التخصص" maxlength="100">
+        </label>
+        <label class="form-field">
+          <span>السنة الدراسية</span>
+          <select name="studyYear">
+            <option value="">اختر السنة</option>
+            <option>الأولى</option>
+            <option>الثانية</option>
+            <option>الثالثة</option>
+            <option>الرابعة</option>
+            <option>الخامسة أو أكثر</option>
+          </select>
+        </label>
+        <label class="form-field">
+          <span>رقم ولي الأمر للطوارئ</span>
+          <input name="emergencyPhone" type="tel" inputmode="tel" placeholder="رقم للتواصل عند الضرورة" maxlength="20">
+        </label>
+        <label class="form-field">
+          <span>حالة الطالب</span>
+          <select name="subscription">
+            <option value="active">نشط</option>
+            <option value="pending">بانتظار التفعيل</option>
+            <option value="paused">متوقف مؤقتًا</option>
+            <option value="withdrawn">منسحب</option>
+            <option value="inactive">موقوف</option>
+          </select>
+        </label>
+        <label class="form-field">
+          <span>الترم <b>*</b></span>
+          <select name="termId" id="student-term" required>
+            <option value="">اختر الترم</option>
+          </select>
+        </label>
+        <div class="student-term-price form-field" id="student-term-price">اختر الترم لعرض سعر الاشتراك.</div>
+        <label class="form-field" id="initial-payment-field">
+          <span>المدفوع عند التسجيل</span>
+          <span class="student-currency-input">
+            <input name="initialPayment" type="number" min="0" step="0.01" value="0" placeholder="0.00">
+            <span>ج.م</span>
+          </span>
+        </label>
+        <label class="form-field" id="payment-method-field">
+          <span>طريقة الدفع</span>
+          <select name="paymentMethod">
+            <option value="cash">نقدي</option>
+            <option value="transfer">تحويل بنكي / محفظة</option>
+            <option value="other">أخرى</option>
+          </select>
+        </label>
+        <label class="form-field">
+          <span>ملاحظات</span>
+          <input name="notes" type="text" placeholder="ملاحظات مهمة للسائق أو الإدارة" maxlength="200">
+        </label>
+      </div>
+
+      <p class="form-error" id="form-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancel-dialog" type="button">إلغاء</button>
+        <button class="primary-button" type="submit">حفظ بيانات الطالب</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="student-dialog" id="student-payment-dialog" aria-labelledby="student-payment-title">
+    <form class="student-form" id="student-payment-form">
+      <div class="dialog-heading">
+        <div>
+          <span class="eyebrow"><span></span> حساب الطالب</span>
+          <h2 id="student-payment-title">تسجيل دفعة</h2>
+        </div>
+        <button class="icon-button" id="close-student-payment" type="button" aria-label="إغلاق">×</button>
+      </div>
+      <p class="payment-context" id="student-payment-context"></p>
+      <label class="form-field">
+        <span>مبلغ الدفعة <b>*</b></span>
+        <span class="student-currency-input">
+          <input name="amount" type="number" min="0.01" step="0.01" required>
+          <span>ج.م</span>
+        </span>
+      </label>
+      <label class="form-field">
+        <span>طريقة الدفع <b>*</b></span>
+        <select name="method" required>
+          <option value="cash">نقدي</option>
+          <option value="transfer">تحويل بنكي / محفظة</option>
+          <option value="other">أخرى</option>
+        </select>
+      </label>
+      <p class="form-error" id="student-payment-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancel-student-payment" type="button">إلغاء</button>
+        <button class="primary-button" type="submit">حفظ الدفعة</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="student-dialog" id="student-renewal-dialog" aria-labelledby="student-renewal-title">
+    <form class="student-form" id="student-renewal-form">
+      <div class="dialog-heading">
+        <div>
+          <span class="eyebrow"><span></span> تجديد الاشتراك</span>
+          <h2 id="student-renewal-title">نقل الطالب إلى ترم جديد</h2>
+        </div>
+        <button class="icon-button" id="close-student-renewal" type="button" aria-label="إغلاق">×</button>
+      </div>
+      <label class="form-field">
+        <span>الترم الجديد <b>*</b></span>
+        <select name="termId" id="renewal-term" required>
+          <option value="">اختر الترم</option>
+        </select>
+      </label>
+      <p class="student-term-price form-field" id="renewal-term-price">اختر الترم لعرض السعر وفترة الاشتراك.</p>
+      <label class="form-field">
+        <span>المدفوع عند التجديد</span>
+        <span class="student-currency-input">
+          <input name="initialPayment" type="number" min="0" step="0.01" value="0">
+          <span>ج.م</span>
+        </span>
+      </label>
+      <label class="form-field">
+        <span>طريقة الدفع</span>
+        <select name="paymentMethod">
+          <option value="cash">نقدي</option>
+          <option value="transfer">تحويل بنكي / محفظة</option>
+          <option value="other">أخرى</option>
+        </select>
+      </label>
+      <p class="form-error" id="student-renewal-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancel-student-renewal" type="button">إلغاء</button>
+        <button class="primary-button" type="submit">تأكيد التجديد</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="student-dialog credential-dialog" id="credential-dialog" aria-labelledby="credential-title">
+    <section class="credential-content">
+      <div class="dialog-heading">
+        <div>
+          <span class="eyebrow"><span></span> بيانات بوابة الطالب</span>
+          <h2 id="credential-title">بيانات الدخول المؤقتة</h2>
+        </div>
+      </div>
+      <p class="credential-warning">احتفظ بكلمة المرور الآن وسلمها للطالب؛ لن تظهر مرة أخرى بعد إغلاق هذه النافذة.</p>
+      <label class="credential-value">
+        <span>اسم المستخدم</span>
+        <input id="credential-username" type="text" readonly>
+      </label>
+      <label class="credential-value">
+        <span>كلمة المرور المؤقتة</span>
+        <input id="credential-password" type="text" readonly dir="ltr">
+      </label>
+      <p class="credential-note">سيُطلب من الطالب تغيير كلمة المرور عند أول تسجيل دخول.</p>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="copy-credentials" type="button">نسخ البيانات</button>
+        <button class="primary-button" id="close-credentials" type="button">تم، إغلاق</button>
+      </div>
+    </section>
+  </dialog>
+</body>
+</html>

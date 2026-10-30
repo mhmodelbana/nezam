@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f6f1">
+  <meta name="description" content="إدارة حجوزات رحلات Vota Travel اليومية.">
+  <title>إدارة الرحلات | Vota Travel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="supabase-data.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body class="trips-page">
+  <header class="topbar">
+    <a class="brand" href="dashboard.html" aria-label="العودة للوحة تحكم Vota Travel">
+      <span class="brand-mark" aria-hidden="true">v.</span>
+      <span>Vota <strong>Travel</strong></span>
+    </a>
+    <div class="date-time" aria-label="التاريخ والوقت">
+      <span id="current-date"></span><span class="date-time-divider" aria-hidden="true"></span><time id="current-time"></time>
+    </div>
+    <a class="logout-link" href="lojin.html">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8 3.5H4.5v13H8m3-3 3.5-3.5L11 6.5M7 10h8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>تسجيل الخروج</span>
+    </a>
+  </header>
+
+  <main class="trips-content">
+    <a class="back-link" href="dashboard.html">لوحة التحكم</a>
+    <section class="page-heading">
+      <div>
+        <span class="eyebrow"><span></span> تشغيل يومي</span>
+        <h1>إدارة الرحلات</h1>
+        <p>تابع تسجيلات الطلاب اليومية، واعرض أعداد كل موعد ومناطق الركوب وبيانات المسجلين.</p>
+      </div>
+      <button class="secondary-button trips-print-button" id="print-trip-manifest" type="button">طباعة كشف اليوم</button>
+    </section>
+
+    <section class="trip-stats" aria-label="ملخص التسجيلات النشطة">
+      <article><span>إجمالي المسجلين</span><strong id="trip-total-count">٠</strong></article>
+      <article><span>مسجلو الذهاب</span><strong id="trip-outbound-count">٠</strong></article>
+      <article><span>مسجلو العودة</span><strong id="trip-return-count">٠</strong></article>
+      <article><span>مناطق الركوب</span><strong id="trip-pickup-area-count">٠</strong></article>
+    </section>
+
+    <section class="trip-admin-browser" aria-labelledby="trip-browser-title">
+      <header class="trip-admin-browser-heading">
+        <div>
+          <span class="panel-kicker">كشف التشغيل</span>
+          <h2 id="trip-browser-title">المواعيد اليومية</h2>
+          <p>اختر اتجاه الرحلة ثم افتح الموعد لمراجعة الطلاب ومناطق الركوب.</p>
+        </div>
+        <label class="trip-admin-date">
+          <span>تاريخ الرحلات</span>
+          <input id="admin-trip-date" type="date">
+        </label>
+      </header>
+
+      <div class="trip-admin-directions" role="group" aria-label="اختيار اتجاه الرحلة">
+        <button class="trip-admin-direction is-selected" type="button" data-admin-direction="outbound" aria-pressed="true">
+          <span class="trip-admin-direction-icon" aria-hidden="true">↗</span>
+          <span><strong>ذهاب للجامعة</strong><small>مواعيد الذهاب</small></span>
+        </button>
+        <button class="trip-admin-direction" type="button" data-admin-direction="return" aria-pressed="false">
+          <span class="trip-admin-direction-icon" aria-hidden="true">↙</span>
+          <span><strong>عودة</strong><small>مواعيد العودة</small></span>
+        </button>
+      </div>
+
+      <div class="trip-admin-schedules" id="admin-trip-schedules" aria-live="polite"></div>
+      <div class="trip-admin-empty" id="admin-trip-schedules-empty" hidden>
+        <strong>لا توجد مواعيد متاحة</strong>
+        <p>لا توجد مواعيد نشطة لهذا الاتجاه في التاريخ المحدد.</p>
+      </div>
+    </section>
+
+    <section class="trip-admin-manifest" id="admin-trip-manifest" aria-labelledby="trip-manifest-title" hidden>
+      <header class="trip-admin-manifest-heading">
+        <div>
+          <span class="panel-kicker">كشف الموعد</span>
+          <h2 id="trip-manifest-title"></h2>
+          <p id="trip-manifest-date"></p>
+        </div>
+        <button class="secondary-button" id="admin-trip-back" type="button">العودة للمواعيد</button>
+      </header>
+      <div class="trip-admin-manifest-tools">
+        <label>
+          <span>منطقة الركوب</span>
+          <select id="admin-trip-pickup">
+            <option value="">كل المناطق</option>
+          </select>
+        </label>
+        <label class="trip-admin-manifest-search">
+          <span>بحث في الطلاب</span>
+          <input id="admin-trip-search" type="search" placeholder="اسم الطالب، الكود أو رقم الهاتف..." autocomplete="off">
+        </label>
+        <p class="trip-admin-manifest-count" id="admin-trip-manifest-count"></p>
+      </div>
+      <div class="trip-admin-table-wrap">
+        <table class="trip-admin-table" id="admin-trip-table">
+          <thead><tr>
+            <th>الطالب</th><th>كود الطالب</th><th>منطقة الركوب</th>
+            <th>رقم التواصل</th><th>الجامعة والكلية</th><th>الإجراءات</th>
+          </tr></thead>
+          <tbody id="admin-trip-students"></tbody>
+        </table>
+        <div class="trip-admin-empty" id="admin-trip-students-empty" hidden>
+          <strong>لا يوجد طلاب مطابقون</strong>
+          <p>جرّب تغيير منطقة الركوب أو عبارة البحث.</p>
+        </div>
+      </div>
+    </section>
+    <p class="storage-message" id="admin-trips-error" role="alert" hidden></p>
+  </main>
+</body>
+</html>
