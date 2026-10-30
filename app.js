@@ -186,7 +186,11 @@ function isTripSchedule(record) {
     typeof record.active === "boolean";
 }
 
-function readTripSchedules() {
+async function readTripSchedules() {
+  if (window.votaAPI) {
+    return await window.votaAPI.getTripSchedules();
+  }
+  // Fallback to localStorage for backward compatibility
   const stored = window.localStorage.getItem(tripSchedulesKey);
   if (stored === null) return [];
   const schedules = JSON.parse(stored);
@@ -209,12 +213,20 @@ function formatTripTime(value) {
   }).format(new Date(2000, 0, 1, hours, minutes));
 }
 
-function isStudentEligibleForTrips(student, tripDate = localDateString()) {
+async function isStudentEligibleForTrips(student, tripDate = localDateString()) {
   if (student.subscription !== "active" || student.archivedAt) return false;
-  const subscriptions = JSON.parse(
-    window.localStorage.getItem("vota-travel.subscriptions.v1") || "[]"
-  );
-  const terms = JSON.parse(window.localStorage.getItem("vota-travel.terms.v1") || "[]");
+  
+  let subscriptions, terms;
+  if (window.votaAPI) {
+    subscriptions = await window.votaAPI.getSubscriptions();
+    terms = await window.votaAPI.getTerms();
+  } else {
+    subscriptions = JSON.parse(
+      window.localStorage.getItem("vota-travel.subscriptions.v1") || "[]"
+    );
+    terms = JSON.parse(window.localStorage.getItem("vota-travel.terms.v1") || "[]");
+  }
+  
   if (!Array.isArray(subscriptions) || !Array.isArray(terms)) {
     throw new TypeError("Saved subscription data has an invalid format.");
   }
@@ -299,7 +311,11 @@ function generateTemporaryPassword() {
   return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
 }
 
-function readStudentRecords() {
+async function readStudentRecords() {
+  if (window.votaAPI) {
+    return await window.votaAPI.getStudents();
+  }
+  // Fallback to localStorage for backward compatibility
   const stored = window.localStorage.getItem(studentRecordsKey);
   if (stored === null) return [];
   const students = JSON.parse(stored);
@@ -347,7 +363,11 @@ function isTripRequest(record) {
   );
 }
 
-function readTripRequests() {
+async function readTripRequests() {
+  if (window.votaAPI) {
+    return await window.votaAPI.getTripRequests();
+  }
+  // Fallback to localStorage for backward compatibility
   const stored = window.localStorage.getItem(tripRequestsKey);
   if (stored === null) return [];
   const records = JSON.parse(stored);
@@ -418,9 +438,9 @@ function initializeTripScheduleManager() {
     return button;
   }
 
-  function render() {
+  async function render() {
     try {
-      renderSchedules(readTripSchedules());
+      renderSchedules(await readTripSchedules());
       error.hidden = true;
     } catch (renderError) {
       console.error("Unable to load trip schedules in settings.", renderError);
@@ -440,14 +460,14 @@ function initializeTripScheduleManager() {
     error.hidden = true;
   }
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     error.textContent = "";
     error.hidden = true;
     if (!form.reportValidity()) return;
 
     try {
-      const schedules = readTripSchedules();
+      const schedules = await readTripSchedules();
       const editingId = Number(form.elements.scheduleId.value);
       const direction = form.elements.direction.value;
       const time = form.elements.time.value;
@@ -461,17 +481,36 @@ function initializeTripScheduleManager() {
       }
 
       const current = schedules.find((schedule) => schedule.id === editingId);
-      const schedule = {
-        id: current?.id ||
-          schedules.reduce((largestId, item) => Math.max(largestId, item.id), 0) + 1,
-        direction,
-        time,
-        active: current?.active ?? true,
-      };
-      const updatedSchedules = current
-        ? schedules.map((item) => item.id === current.id ? schedule : item)
-        : [...schedules, schedule];
-      window.localStorage.setItem(tripSchedulesKey, JSON.stringify(updatedSchedules));
+      
+      if (window.votaAPI) {
+        if (current) {
+          await window.votaAPI.updateTripSchedule(editingId, {
+            direction,
+            time,
+            active: current.active,
+          });
+        } else {
+          await window.votaAPI.createTripSchedule({
+            direction,
+            time,
+            active: true,
+          });
+        }
+      } else {
+        // Fallback to localStorage
+        const schedule = {
+          id: current?.id ||
+            schedules.reduce((largestId, item) => Math.max(largestId, item.id), 0) + 1,
+          direction,
+          time,
+          active: current?.active ?? true,
+        };
+        const updatedSchedules = current
+          ? schedules.map((item) => item.id === current.id ? schedule : item)
+          : [...schedules, schedule];
+        window.localStorage.setItem(tripSchedulesKey, JSON.stringify(updatedSchedules));
+      }
+      
       resetForm();
       render();
     } catch (saveError) {
@@ -482,13 +521,13 @@ function initializeTripScheduleManager() {
   });
 
   cancelEditButton.addEventListener("click", resetForm);
-  rows.addEventListener("click", (event) => {
+  rows.addEventListener("click", async (event) => {
     const button = event.target.closest("button[data-schedule-id]");
     if (!button) return;
     const scheduleId = Number(button.dataset.scheduleId);
     const action = button.dataset.scheduleAction;
     try {
-      const schedules = readTripSchedules();
+      const schedules = await readTripSchedules();
       const target = schedules.find((schedule) => schedule.id === scheduleId);
       if (!target) return;
       if (action === "edit") {
@@ -503,12 +542,23 @@ function initializeTripScheduleManager() {
         return;
       }
       if (action === "delete" && !window.confirm("هل تريد حذف هذا الموعد؟")) return;
-      const updatedSchedules = action === "toggle"
-        ? schedules.map((schedule) => schedule.id === scheduleId
-          ? { ...schedule, active: !schedule.active }
-          : schedule)
-        : schedules.filter((schedule) => schedule.id !== scheduleId);
-      window.localStorage.setItem(tripSchedulesKey, JSON.stringify(updatedSchedules));
+      
+      if (window.votaAPI) {
+        if (action === "toggle") {
+          await window.votaAPI.toggleTripSchedule(scheduleId);
+        } else if (action === "delete") {
+          await window.votaAPI.deleteTripSchedule(scheduleId);
+        }
+      } else {
+        // Fallback to localStorage
+        const updatedSchedules = action === "toggle"
+          ? schedules.map((schedule) => schedule.id === scheduleId
+            ? { ...schedule, active: !schedule.active }
+            : schedule)
+          : schedules.filter((schedule) => schedule.id !== scheduleId);
+        window.localStorage.setItem(tripSchedulesKey, JSON.stringify(updatedSchedules));
+      }
+      
       if (Number(form.elements.scheduleId.value) === scheduleId) resetForm();
       render();
     } catch (updateError) {
