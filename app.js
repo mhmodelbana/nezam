@@ -52,6 +52,7 @@ function initializeLogin() {
   const passwordToggle = document.querySelector("#password-toggle");
   const usernameInput = document.querySelector("#username");
   const formMessage = document.querySelector("#form-message");
+  const submitButton = loginForm.querySelector('button[type="submit"]');
 
   passwordToggle.addEventListener("click", () => {
     const isPasswordHidden = passwordInput.type === "password";
@@ -67,18 +68,27 @@ function initializeLogin() {
     event.preventDefault();
 
     formMessage.textContent = "";
+    formMessage.hidden = true;
+    submitButton.disabled = true;
+    submitButton.textContent = "جاري تسجيل الدخول...";
+
     try {
       const loginName = usernameInput.value.trim();
       const studentCode = /^VT-(\d+)$/i.exec(loginName);
       const email = studentCode
         ? `student-${Number(studentCode[1])}@students.votatravel.com`
         : loginName;
+
       const { data, error } = await window.votaSupabase.auth.signInWithPassword({
         email,
         password: passwordInput.value,
       });
+
       if (error) {
         formMessage.textContent = "اسم المستخدم أو كلمة المرور غير صحيحة.";
+        formMessage.hidden = false;
+        submitButton.disabled = false;
+        submitButton.textContent = "تسجيل الدخول";
         return;
       }
 
@@ -87,21 +97,33 @@ function initializeLogin() {
         .select("role, student_id")
         .eq("user_id", data.user.id)
         .maybeSingle();
+
       if (profileError || !profile) {
         await window.votaSupabase.auth.signOut();
-        throw profileError || new Error("The authenticated account has no assigned role.");
+        formMessage.textContent = "لم يتم تعيين صلاحية لهذا الحساب. تواصل مع الإدارة.";
+        formMessage.hidden = false;
+        submitButton.disabled = false;
+        submitButton.textContent = "تسجيل الدخول";
+        return;
       }
+
       if (profile.role === "admin" && profile.student_id === null) {
         window.location.assign("dashboard.html");
       } else if (profile.role === "student" && Number.isSafeInteger(profile.student_id)) {
         window.location.assign("portal.html");
       } else {
         await window.votaSupabase.auth.signOut();
-        throw new Error("The authenticated account has an invalid role assignment.");
+        formMessage.textContent = "صلاحية الحساب غير صحيحة. تواصل مع الإدارة.";
+        formMessage.hidden = false;
+        submitButton.disabled = false;
+        submitButton.textContent = "تسجيل الدخول";
       }
     } catch (error) {
-      console.error("Unable to authenticate student portal login.", error);
-      formMessage.textContent = "تعذر تسجيل الدخول الآن. حاول مرة أخرى.";
+      console.error("Unable to authenticate login.", error);
+      formMessage.textContent = "حدث خطأ أثناء تسجيل الدخول. حاول مرة أخرى.";
+      formMessage.hidden = false;
+      submitButton.disabled = false;
+      submitButton.textContent = "تسجيل الدخول";
     }
   });
 }
@@ -3234,16 +3256,47 @@ async function initializeApplication() {
     const shouldInitialize = await window.votaData.initialize();
     initializeDateTime();
     initializeSessionLogout();
-    initializeLogin();
+
+    const currentPage = window.location.pathname.split('/').pop();
+
+    // Initialize login form only on index.html
+    if (currentPage === 'index.html') {
+      initializeLogin();
+      // If already logged in, redirect to appropriate page
+      if (shouldInitialize) {
+        if (window.votaData.role === 'admin') {
+          window.location.replace('dashboard.html');
+        } else if (window.votaData.role === 'student') {
+          window.location.replace('portal.html');
+        }
+      }
+      return;
+    }
+
+    // For protected pages, check authentication
     if (!shouldInitialize) {
-      // Redirect to login if on protected pages
-      const currentPage = window.location.pathname.split('/').pop();
       const protectedPages = ['dashboard.html', 'students.html', 'settings.html', 'subscriptions.html', 'trips.html', 'portal.html', 'portal-personal.html', 'portal-subscription.html', 'portal-trips.html', 'student.html'];
       if (protectedPages.includes(currentPage)) {
         window.location.replace('index.html');
       }
       return;
     }
+
+    // Role-based access control
+    const adminPages = ['dashboard.html', 'students.html', 'settings.html', 'subscriptions.html', 'trips.html', 'student.html'];
+    const studentPages = ['portal.html', 'portal-personal.html', 'portal-subscription.html', 'portal-trips.html'];
+
+    if (window.votaData.role === 'admin' && studentPages.includes(currentPage)) {
+      window.location.replace('dashboard.html');
+      return;
+    }
+
+    if (window.votaData.role === 'student' && adminPages.includes(currentPage)) {
+      window.location.replace('portal.html');
+      return;
+    }
+
+    // Initialize page-specific modules
     initializeStudents();
     initializeSettings();
     initializeSubscriptions();
