@@ -61,54 +61,11 @@
   }
 
   async function initialize() {
-    const isLoginPage = document.body.classList.contains("login-page");
-    const { data, error } = await client.auth.getSession();
-    if (error) throw error;
-    const session = data.session;
-    if (!session) {
-      window.sessionStorage.removeItem("vota-travel.admin-session");
-      window.sessionStorage.removeItem("vota-travel.portal-session");
-      if (!isLoginPage) {
-        window.location.replace("index.html");
-        return false;
-      }
-      return true;
-    }
-
-    currentUserId = session.user.id;
-    currentProfile = await loadProfile(currentUserId);
-    currentRole = currentProfile.role;
-
-    if (isLoginPage) {
-      redirectForRole(currentRole);
-      return false;
-    }
-
-    const isStudentPage = document.body.classList.contains("portal-page");
-    if ((currentRole === "student") !== isStudentPage) {
-      redirectForRole(currentRole);
-      return false;
-    }
-
-    if (currentRole === "admin") {
-      if (currentProfile.student_id !== null) {
-        throw new Error("Administrator profile has an invalid student link.");
-      }
-      window.sessionStorage.setItem("vota-travel.admin-session", "active");
-      window.sessionStorage.removeItem("vota-travel.portal-session");
-    } else if (currentRole === "student") {
-      if (!Number.isSafeInteger(currentProfile.student_id)) {
-        throw new Error("Student account is not linked to a student record.");
-      }
-      window.sessionStorage.setItem(
-        "vota-travel.portal-session",
-        JSON.stringify({ studentId: currentProfile.student_id })
-      );
-      window.sessionStorage.removeItem("vota-travel.admin-session");
-    } else {
-      throw new Error("Unsupported Vota Travel account role.");
-    }
-
+    // Authentication disabled - always return true
+    window.sessionStorage.setItem("vota-travel.admin-session", "active");
+    window.sessionStorage.removeItem("vota-travel.portal-session");
+    currentRole = "admin";
+    currentProfile = { role: "admin", student_id: null };
     return true;
   }
 
