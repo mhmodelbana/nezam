@@ -1,123 +1,27 @@
-# دليل ترحيل المشروع من localStorage إلى Supabase
+# ربط النظام بقاعدة Supabase
 
-## ما تم إنجازه
+أصبحت واجهات الإدارة والطلاب تستخدم جداول Supabase مباشرةً للقراءة والكتابة:
 
-### 1. إنشاء جداول Supabase
-تم إنشاء ملف `supabase/tables.sql` يحتوي على جداول منفصلة:
-- `students` - بيانات الطلاب
-- `terms` - الفصول الدراسية
-- `subscriptions` - الاشتراكات
-- `trip_schedules` - مواعيد الرحلات
-- `trip_requests` - طلبات الرحلات
+- `students` لملفات الطلاب وحالة الحساب.
+- `terms` للفصول الدراسية.
+- `subscriptions` للاشتراكات وسجل الدفعات.
+- `trip_schedules` لمواعيد الرحلات.
+- `trip_requests` لحجوزات الرحلات.
+- `profiles` لربط مستخدمي Supabase Auth بأدوارهم وملفات الطلاب.
 
-**للتطبيق:** قم بتشغيل هذا الملف في محرر SQL في Supabase بعد تشغيل `setup.sql`.
+تُحوّل طبقة [supabase-api.js](./supabase-api.js) أسماء أعمدة قاعدة البيانات
+إلى الصيغة التي تستخدمها الواجهات. تفرض سياسات RLS صلاحيات الإدارة، وتتيح
+للطالب قراءة بياناته ومواعيد الرحلات النشطة فقط. تُنفّذ حجوزات الطالب وتغيير
+حالة كلمة المرور عبر وظائف قاعدة البيانات المقيّدة بحسابه.
 
-### 2. إنشاء API Layer
-تم إنشاء ملف `supabase-api.js` يحتوي على دوال للتعامل مع Supabase:
-- `getStudents()`, `createStudent()`, `updateStudent()`, `deleteStudent()`
-- `getTerms()`, `createTerm()`, `updateTerm()`, `deleteTerm()`
-- `getSubscriptions()`, `createSubscription()`, `updateSubscription()`, `addPayment()`, `deleteSubscription()`
-- `getTripSchedules()`, `createTripSchedule()`, `updateTripSchedule()`, `deleteTripSchedule()`, `toggleTripSchedule()`
-- `getTripRequests()`, `getTripRequestsByDate()`, `createTripRequest()`, `updateTripRequest()`, `deleteTripRequest()`
+## التهيئة والنشر
 
-### 3. تحديث supabase-data.js
-تم إزالة Storage adapter واستخدام Supabase مباشرة للعمليات التالية:
-- `refreshStudentState()` - يقرأ من جداول Supabase
-- `updateStudentTrip()` - يكتب إلى جدول trip_requests
-- `completePasswordChange()` - يحدث جدول students
+اتبع خطوات [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) لتشغيل ملفات SQL وإنشاء
+حساب الإدارة ونشر Edge Function. جميع التغييرات اللاحقة تُحفظ في Supabase؛
+لا تستخدم الواجهات تخزين المتصفح لحفظ بيانات الأعمال.
 
-### 4. تحديث دوال القراءة في app.js
-تم تحويل الدوال التالية إلى async واستخدام Supabase API:
-- `readStudentRecords()` - يستخدم `window.votaAPI.getStudents()`
-- `readTripSchedules()` - يستخدم `window.votaAPI.getTripSchedules()`
-- `readTripRequests()` - يستخدم `window.votaAPI.getTripRequests()`
-- `isStudentEligibleForTrips()` - يستخدم `window.votaAPI.getSubscriptions()` و `window.votaAPI.getTerms()`
+## البيانات القديمة
 
-### 5. تحديث دوال الكتابة في app.js (جزئي)
-تم تحديث دوال إدارة trip schedules:
-- `initializeTripScheduleManager()` - يستخدم Supabase API للإنشاء والتحديث والحذف
-
-## ما تبقى من العمل
-
-### 1. تحديث دوال الكتابة المتبقية في app.js
-
-الدوال التالية لا تزال تستخدم localStorage وتحتاج تحديث:
-
-#### إدارة الطلاب
-- دوال إنشاء وتحديث وحذف الطلاب في `initializeStudentManager()`
-- دوال تسجيل الدفعات في `initializeStudentPaymentDialog()`
-- دوال تجديد الاشتراكات في `initializeStudentRenewalDialog()`
-
-#### إدارة الاشتراكات
-- دوال إنشاء وتحديث الاشتراكات في `initializeSubscriptionManager()`
-- دوال تسجيل الدفعات في `initializePaymentDialog()`
-
-#### إدارة الرحلات
-- دالة `initializeTripAdmin()` render function تحتاج تحويل إلى async
-
-#### الإعدادات
-- دوال إدارة الفصول الدراسية في `initializeTermManager()`
-
-### 2. تحويل الدوال التي تستخدم دوال القراءة إلى async
-
-بما أن دوال القراءة أصبحت async، يجب تحويل جميع الدوال التي تستخدمها إلى async:
-- `initializeTripAdmin()` - دالة render
-- أي دوال أخرى تستدعي `readStudentRecords()`, `readTripRequests()`, أو `readTripSchedules()`
-
-### 3. تحديث البوابة (Portal)
-
-دوال البوابة في app.js تحتاج تحديث لاستخدام البيانات من Supabase بدلاً من localStorage:
-- `initializeStudentPortal()`
-- `initializePortalPersonal()`
-- `initializePortalSubscription()`
-- `initializePortalTrips()`
-
-## خطوات التطبيق
-
-### الخطوة 1: تشغيل SQL في Supabase
-1. افتح لوحة تحكم Supabase
-2. اذهب إلى SQL Editor
-3. شغل `supabase/setup.sql` أولاً
-4. ثم شغل `supabase/tables.sql`
-
-### الخطوة 2: تحديث app.js
-
-لتحديث دالة تستخدم localStorage:
-
-**قبل:**
-```javascript
-function someFunction() {
-  const data = JSON.parse(localStorage.getItem("key") || "[]");
-  // معالجة البيانات
-  localStorage.setItem("key", JSON.stringify(updatedData));
-}
-```
-
-**بعد:**
-```javascript
-async function someFunction() {
-  if (window.votaAPI) {
-    const data = await window.votaAPI.getData();
-    // معالجة البيانات
-    await window.votaAPI.updateData(updatedData);
-  } else {
-    // Fallback للتوافق
-    const data = JSON.parse(localStorage.getItem("key") || "[]");
-    // معالجة البيانات
-    localStorage.setItem("key", JSON.stringify(updatedData));
-  }
-}
-```
-
-### الخطوة 3: اختبار التطبيق
-
-1. اختبر كل صفحة للتأكد من أن البيانات تُقرأ وتُكتب بشكل صحيح
-2. تأكد من أن البوابة تعمل بشكل صحيح للطلاب
-3. تأكد من أن لوحة التحكم تعمل بشكل صحيح للمسؤولين
-
-## ملاحظات مهمة
-
-- جميع التعديلات الحالية تحتوي على fallback إلى localStorage للتوافق
-- يمكنك إزالة fallback بعد التأكد من أن Supabase يعمل بشكل صحيح
-- تأكد من أن المستخدمين لديهم الصلاحيات المناسبة في Supabase
-- قم بعمل نسخة احتياطية من البيانات قبل الترحيل
+قاعدة البيانات تبدأ دون سجلات أعمال. إن كانت هناك بيانات قديمة في متصفح أو
+في جدول `app_state` من إعداد سابق، صدّرها واستوردها إلى الجداول المطابقة قبل
+الاعتماد على النظام. لا تستورد كلمات المرور أو مفاتيح الخدمة إلى ملفات الواجهة.

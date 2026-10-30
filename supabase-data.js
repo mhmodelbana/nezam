@@ -84,34 +84,21 @@
     }
 
     const studentId = currentProfile.student_id;
-
-    const { data: student, error: studentError } = await client
-      .from("students")
-      .select("*")
-      .eq("id", studentId)
-      .single();
-    if (studentError) throw studentError;
-    if (!student || student.archived_at) throw new Error("Student record is unavailable");
-
-    const { data: subscriptions, error: subError } = await client
-      .from("subscriptions")
-      .select("*, terms(*)")
-      .eq("student_id", studentId);
-    if (subError) throw subError;
-
-    const { data: requests, error: reqError } = await client
-      .from("trip_requests")
-      .select("*")
-      .eq("student_id", studentId);
-    if (reqError) throw reqError;
-
-    const { data: schedules, error: schedError } = await client
-      .from("trip_schedules")
-      .select("*")
-      .eq("active", true);
-    if (schedError) throw schedError;
-
-    return { student, subscriptions, requests, schedules };
+    const [student, subscriptions, requests, schedules, terms] = await Promise.all([
+      window.votaAPI.getStudent(studentId),
+      window.votaAPI.getStudentSubscriptions(studentId),
+      window.votaAPI.getStudentTripRequests(studentId),
+      window.votaAPI.getTripSchedules(),
+      window.votaAPI.getTerms(),
+    ]);
+    if (!student || student.archivedAt) throw new Error("Student record is unavailable");
+    return {
+      student,
+      subscriptions,
+      requests,
+      schedules: schedules.filter((schedule) => schedule.active),
+      terms,
+    };
   }
 
   async function updateStudentTrip(action, scheduleId, tripDate, requestId) {
@@ -119,69 +106,14 @@
       throw new Error("No active student session");
     }
 
-    const studentId = currentProfile.student_id;
-
-    if (action === "cancel") {
-      const { error } = await client
-        .from("trip_requests")
-        .update({ status: "cancelled" })
-        .eq("id", requestId)
-        .eq("student_id", studentId);
-      if (error) throw error;
-    } else if (action === "book") {
-      const { data: student, error: studentError } = await client
-        .from("students")
-        .select("*, subscriptions(*, terms(*))")
-        .eq("id", studentId)
-        .single();
-      if (studentError) throw studentError;
-
-      const { data: schedule, error: schedError } = await client
-        .from("trip_schedules")
-        .select("*")
-        .eq("id", scheduleId)
-        .eq("active", true)
-        .single();
-      if (schedError) throw schedError;
-      if (!schedule) throw new Error("This trip time is not available");
-
-      const today = new Date().toISOString().split('T')[0];
-      if (tripDate !== today) throw new Error("Bookings are available for today only");
-
-      const { data: existing, error: existingError } = await client
-        .from("trip_requests")
-        .select("*")
-        .eq("student_id", studentId)
-        .eq("trip_date", tripDate)
-        .eq("trip_type", schedule.direction)
-        .in("status", ["pending", "approved"])
-        .maybeSingle();
-      if (existingError) throw existingError;
-      if (existing) throw new Error("A registration already exists for this direction today");
-
-      const { error: insertError } = await client
-        .from("trip_requests")
-        .insert({
-          student_id: studentId,
-          student_name: student.name,
-          trip_type: schedule.direction,
-          trip_date: tripDate,
-          trip_time: schedule.time,
-          schedule_id: scheduleId,
-          destination: student.pickup,
-          pickup: student.pickup,
-          notes: "",
-          status: "approved"
-        });
-      if (insertError) throw insertError;
-    }
-
-    const { data: requests, error } = await client
-      .from("trip_requests")
-      .select("*")
-      .eq("student_id", studentId);
+    const { error } = await client.rpc("student_trip_action", {
+      p_action: action,
+      p_schedule_id: scheduleId,
+      p_trip_date: tripDate,
+      p_request_id: requestId,
+    });
     if (error) throw error;
-    return requests;
+    return window.votaAPI.getStudentTripRequests(currentProfile.student_id);
   }
 
   async function completePasswordChange(password) {
@@ -192,10 +124,7 @@
       throw new Error("No active student session");
     }
 
-    const { error: profileError } = await client
-      .from("students")
-      .update({ must_change_password: false })
-      .eq("id", currentProfile.student_id);
+    const { error: profileError } = await client.rpc("student_complete_password_change");
     if (profileError) throw profileError;
 
     return refreshStudentState();

@@ -128,9 +128,6 @@ function initializeLogin() {
   });
 }
 
-const studentRecordsKey = "vota-travel.students.v1";
-const tripRequestsKey = "vota-travel.trip-requests.v1";
-const tripSchedulesKey = "vota-travel.trip-schedules.v1";
 const subscriptionExpiryAlertDays = 15;
 const tripDirectionLabels = { outbound: "ذهاب للجامعة", return: "عودة" };
 const tripStatusLabels = {
@@ -773,7 +770,7 @@ function initializeTripAdmin() {
   document.querySelector("#print-trip-manifest").addEventListener("click", () => window.print());
   render();
 }
-function initializeStudentPortal() {
+async function initializeStudentPortal() {
   const page = document.querySelector("#student-portal");
   if (!page) return;
 
@@ -1146,7 +1143,7 @@ function initializeStudentPortal() {
   });
 }
 
-function initializeStudentFile() {
+async function initializeStudentFile() {
   const profile = document.querySelector("#student-profile");
   if (!profile) return;
   const message = document.querySelector("#student-profile-message");
@@ -1382,7 +1379,7 @@ function initializeStudentFile() {
   document.querySelector("#print-student-file").addEventListener("click", () => window.print());
 }
 
-function initializeStudents() {
+async function initializeStudents() {
   const studentDialog = document.querySelector("#student-dialog");
   const studentForm = document.querySelector("#student-form");
   const studentRows = document.querySelector("#student-rows");
@@ -1447,11 +1444,6 @@ function initializeStudents() {
     return;
   }
 
-  const storageKeys = {
-    students: "vota-travel.students.v1",
-    terms: "vota-travel.terms.v1",
-    subscriptions: "vota-travel.subscriptions.v1",
-  };
   const subscriptionLabels = {
     active: "نشط",
     pending: "بانتظار التفعيل",
@@ -1586,25 +1578,50 @@ function initializeStudents() {
 
   async function saveRegistration(updatedStudents, updatedSubscriptions) {
     try {
-      // Save students and subscriptions to Supabase
+      const studentIds = new Map();
+      const savedStudents = [];
       for (const student of updatedStudents) {
-        const existing = students.find(s => s.id === student.id);
-        if (existing) {
-          await window.votaAPI.updateStudent(student.id, student);
+        const existing = students.find((record) => record.id === student.id);
+        if (existing && JSON.stringify(existing) === JSON.stringify(student)) {
+          savedStudents.push(student);
+        } else if (existing) {
+          Object.assign(student, await window.votaAPI.updateStudent(student.id, student));
+          savedStudents.push(student);
         } else {
-          await window.votaAPI.createStudent(student);
+          const temporaryId = student.id;
+          Object.assign(student, await window.votaAPI.createStudent(student));
+          studentIds.set(temporaryId, student.id);
+          savedStudents.push(student);
         }
       }
+
+      const savedSubscriptions = [];
       for (const subscription of updatedSubscriptions) {
-        const existing = subscriptions.find(s => s.id === subscription.id);
-        if (existing) {
-          await window.votaAPI.updateSubscription(subscription.id, subscription);
+        const originalStudentId = subscription.studentId;
+        if (studentIds.has(originalStudentId)) {
+          subscription.studentId = studentIds.get(originalStudentId);
+        }
+        const existing = subscriptions.find((record) => record.id === subscription.id);
+        if (existing && JSON.stringify(existing) === JSON.stringify(subscription)) {
+          savedSubscriptions.push(subscription);
+        } else if (existing) {
+          Object.assign(
+            subscription,
+            await window.votaAPI.updateSubscription(subscription.id, subscription)
+          );
+          savedSubscriptions.push(subscription);
         } else {
-          await window.votaAPI.createSubscription(subscription);
+          for (const [index, payment] of (subscription.payments || []).entries()) {
+            if (studentIds.has(originalStudentId)) {
+              payment.receiptNumber = `VOTA-${subscription.studentId}-${Date.now()}-${index + 1}`;
+            }
+          }
+          Object.assign(subscription, await window.votaAPI.createSubscription(subscription));
+          savedSubscriptions.push(subscription);
         }
       }
-      students = updatedStudents;
-      subscriptions = updatedSubscriptions;
+      students = savedStudents;
+      subscriptions = savedSubscriptions;
       storageMessage.textContent = "";
       storageMessage.hidden = true;
       return true;
@@ -1618,16 +1635,20 @@ function initializeStudents() {
 
   async function saveStudents(updatedStudents) {
     try {
-      // Save students to Supabase
+      const savedStudents = [];
       for (const student of updatedStudents) {
-        const existing = students.find(s => s.id === student.id);
-        if (existing) {
-          await window.votaAPI.updateStudent(student.id, student);
+        const existing = students.find((record) => record.id === student.id);
+        if (existing && JSON.stringify(existing) === JSON.stringify(student)) {
+          savedStudents.push(student);
+        } else if (existing) {
+          Object.assign(student, await window.votaAPI.updateStudent(student.id, student));
+          savedStudents.push(student);
         } else {
-          await window.votaAPI.createStudent(student);
+          Object.assign(student, await window.votaAPI.createStudent(student));
+          savedStudents.push(student);
         }
       }
-      students = updatedStudents;
+      students = savedStudents;
       storageMessage.textContent = "";
       storageMessage.hidden = true;
       return true;
@@ -2145,24 +2166,16 @@ function initializeStudents() {
 
   async function resetStudentPassword(student) {
     const temporaryPassword = generateTemporaryPassword();
-    const updatedStudent = {
-      ...student,
-      mustChangePassword: true,
-      updatedAt: new Date().toISOString(),
-    };
-    const account = await window.votaData.manageStudentAuth(
+    await window.votaData.manageStudentAuth(
       student.authUserId ? "reset" : "create",
       student.id,
       temporaryPassword
     );
-    updatedStudent.authUserId = account.userId;
-    const updatedStudents = students.map((record) =>
-      record.id === student.id ? updatedStudent : record
-    );
-    if (!saveStudents(updatedStudents)) {
-      throw new Error("Unable to save the new student portal password.");
-    }
-    students = updatedStudents;
+    await window.votaAPI.updateStudent(student.id, {
+      mustChangePassword: true,
+      updatedAt: new Date().toISOString(),
+    });
+    students = await window.votaAPI.getStudents();
     renderStudents();
     showCredentials(student.id, temporaryPassword);
   }
@@ -2221,7 +2234,7 @@ function initializeStudents() {
     renewalForm.reset();
   });
   renewalTermSelect.addEventListener("change", updateRenewalPreview);
-  paymentForm.addEventListener("submit", (event) => {
+  paymentForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const error = document.querySelector("#student-payment-error");
     error.textContent = "";
@@ -2261,7 +2274,7 @@ function initializeStudents() {
     const updatedStudents = students.map((record) =>
       record.id === student.id ? { ...record, updatedAt: new Date().toISOString() } : record
     );
-    if (!saveRegistration(updatedStudents, updatedSubscriptions)) {
+    if (!(await saveRegistration(updatedStudents, updatedSubscriptions))) {
       error.textContent = "لم يتم حفظ الدفعة. حاول مرة أخرى.";
       return;
     }
@@ -2271,7 +2284,7 @@ function initializeStudents() {
     renderStudents();
     printReceipt(student, subscription, payment);
   });
-  renewalForm.addEventListener("submit", (event) => {
+  renewalForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const error = document.querySelector("#student-renewal-error");
     error.textContent = "";
@@ -2292,7 +2305,7 @@ function initializeStudents() {
       return;
     }
     const subscription = {
-      id: nextSubscriptionId,
+      id: -nextSubscriptionId,
       studentId: student.id,
       studentName: student.name,
       studentPhone: student.phone,
@@ -2307,7 +2320,7 @@ function initializeStudents() {
             amountCents: initialPayment,
             method: String(renewalForm.elements.paymentMethod.value),
             paidAt: new Date().toISOString(),
-            receiptNumber: `VOTA-${student.id}-${nextSubscriptionId}-${subscriptions.length + 1}`,
+            receiptNumber: `VOTA-${student.id}-${Date.now()}-1`,
           }]
         : [],
     };
@@ -2317,7 +2330,7 @@ function initializeStudents() {
         : record
     );
     const updatedSubscriptions = [...subscriptions, subscription];
-    if (!saveRegistration(updatedStudents, updatedSubscriptions)) {
+    if (!(await saveRegistration(updatedStudents, updatedSubscriptions))) {
       error.textContent = "تعذر حفظ تجديد الاشتراك. حاول مرة أخرى.";
       return;
     }
@@ -2497,7 +2510,7 @@ function initializeStudents() {
             }
           : subscription
       );
-      if (!saveRegistration(updatedStudents, updatedSubscriptions)) {
+      if (!(await saveRegistration(updatedStudents, updatedSubscriptions))) {
         formError.textContent = "لم يتم حفظ التعديلات. حاول مرة أخرى.";
         return;
       }
@@ -2522,14 +2535,14 @@ function initializeStudents() {
       return;
     }
 
-    const newId = nextStudentId++;
+    const newId = -nextStudentId++;
     let temporaryPassword;
     try {
       temporaryPassword = generateTemporaryPassword();
     } catch (error) {
       nextStudentId--;
       console.error("Unable to create student portal credentials.", error);
-      formError.textContent = "تعذر إنشاء بيانات الدخول. تحقق من المتصفح وحاول مرة أخرى.";
+      formError.textContent = "تعذر إنشاء بيانات الدخول. تحقق من الاتصال وحاول مرة أخرى.";
       return;
     }
 
@@ -2551,7 +2564,7 @@ function initializeStudents() {
     };
 
     const newSubscription = {
-      id: nextSubscriptionId++,
+      id: -nextSubscriptionId++,
       studentId: newStudent.id,
       studentName: newStudent.name,
       studentPhone: newStudent.phone,
@@ -2567,14 +2580,14 @@ function initializeStudents() {
               amountCents: initialPayment,
               method: String(formData.get("paymentMethod")),
               paidAt: new Date().toISOString(),
-              receiptNumber: `VOTA-${newStudent.id}-${nextSubscriptionId - 1}-1`,
+              receiptNumber: `VOTA-${newStudent.id}-${Date.now()}-1`,
             },
           ]
         : [],
     };
     const updatedStudents = [...students, newStudent];
     const updatedSubscriptions = [...subscriptions, newSubscription];
-    if (!saveRegistration(updatedStudents, updatedSubscriptions)) {
+    if (!(await saveRegistration(updatedStudents, updatedSubscriptions))) {
       nextStudentId--;
       nextSubscriptionId--;
       formError.textContent = "لم يتم حفظ بيانات الطالب. حاول مرة أخرى.";
@@ -2589,12 +2602,10 @@ function initializeStudents() {
         newStudent.id,
         temporaryPassword
       );
-      const linkedStudent = { ...newStudent, authUserId: account.userId };
-      students = students.map((student) =>
-        student.id === linkedStudent.id ? linkedStudent : student
-      );
-      if (!saveStudents(students)) {
-        throw new Error("Student Auth account was created but the profile link could not be saved.");
+      students = await window.votaAPI.getStudents();
+      const linkedStudent = students.find((student) => student.id === newStudent.id);
+      if (!linkedStudent || linkedStudent.authUserId !== account.userId) {
+        throw new Error("Student Auth account was created but the profile link could not be loaded.");
       }
       closeStudentDialog();
       showCredentials(newStudent.id, temporaryPassword);
@@ -2607,7 +2618,7 @@ function initializeStudents() {
     }
   });
 
-  studentRows.addEventListener("click", (event) => {
+  studentRows.addEventListener("click", async (event) => {
     const actionButton = event.target.closest("button[data-action]");
     if (!actionButton || !storageReady) return;
 
@@ -2630,8 +2641,7 @@ function initializeStudents() {
             }
           : record
       );
-      if (!saveStudents(updatedStudents)) return;
-      students = updatedStudents;
+      if (!(await saveStudents(updatedStudents))) return;
       renderStudents();
       return;
     }
@@ -2660,8 +2670,7 @@ function initializeStudents() {
           ? { ...record, subscription: "withdrawn", updatedAt: new Date().toISOString() }
           : record
       );
-      if (!saveStudents(updatedStudents)) return;
-      students = updatedStudents;
+      if (!(await saveStudents(updatedStudents))) return;
       renderStudents();
       return;
     }
@@ -2684,8 +2693,7 @@ function initializeStudents() {
         const { archivedAt, ...restoredRecord } = record;
         return { ...restoredRecord, updatedAt: new Date().toISOString() };
       });
-      if (!saveStudents(updatedStudents)) return;
-      students = updatedStudents;
+      if (!(await saveStudents(updatedStudents))) return;
       renderStudents();
       return;
     }
@@ -2707,7 +2715,7 @@ function initializeStudents() {
   if (requestedEditStudent) openEditDialog(requestedEditStudent);
 }
 
-function initializeSettings() {
+async function initializeSettings() {
   const termForm = document.querySelector("#term-form");
   if (!termForm) return;
 
@@ -2717,8 +2725,6 @@ function initializeSettings() {
   const termPriceDialog = document.querySelector("#term-price-dialog");
   const termPriceForm = document.querySelector("#term-price-form");
   const priceError = document.querySelector("#term-price-error");
-  const termsKey = "vota-travel.terms.v1";
-  const subscriptionsKey = "vota-travel.subscriptions.v1";
   const money = new Intl.NumberFormat("ar-EG", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -2741,26 +2747,21 @@ function initializeSettings() {
     termForm.querySelector('button[type="submit"]').disabled = true;
   }
 
-  async function readRecords(key, validator, label) {
-    if (key === termsKey) {
-      return await window.votaAPI.getTerms();
-    }
-    if (key === subscriptionsKey) {
-      return await window.votaAPI.getSubscriptions();
-    }
-    throw new Error(`Unknown storage key: ${key}`);
-  }
-
   async function saveTerms(updatedTerms) {
     try {
-      // Save terms to Supabase
       for (const term of updatedTerms) {
-        const existing = terms.find(t => t.id === term.id);
+        const existing = terms.find((record) => record.id === term.id);
         if (existing) {
-          await window.votaAPI.updateTerm(term.id, term);
+          if (JSON.stringify(existing) !== JSON.stringify(term)) {
+            Object.assign(term, await window.votaAPI.updateTerm(term.id, term));
+          }
         } else {
-          await window.votaAPI.createTerm(term);
+          Object.assign(term, await window.votaAPI.createTerm(term));
         }
+      }
+      const retainedIds = new Set(updatedTerms.map((term) => term.id));
+      for (const term of terms) {
+        if (!retainedIds.has(term.id)) await window.votaAPI.deleteTerm(term.id);
       }
       terms = updatedTerms;
       storageError.textContent = "";
@@ -2768,7 +2769,7 @@ function initializeSettings() {
       return true;
     } catch (error) {
       console.error("Unable to save terms.", error);
-      storageError.textContent = "تعذر حفظ إعدادات الترم. تحقق من إعدادات المتصفح ومساحة التخزين.";
+      storageError.textContent = "تعذر حفظ إعدادات الترم. تحقق من اتصال Supabase وصلاحيات الحساب.";
       storageError.hidden = false;
       return false;
     }
@@ -2777,19 +2778,26 @@ function initializeSettings() {
   async function saveTermSchedule(updatedTerms, updatedSubscriptions) {
     try {
       for (const term of updatedTerms) {
-        const existing = terms.find(t => t.id === term.id);
+        const existing = terms.find((record) => record.id === term.id);
         if (existing) {
-          await window.votaAPI.updateTerm(term.id, term);
+          if (JSON.stringify(existing) !== JSON.stringify(term)) {
+            Object.assign(term, await window.votaAPI.updateTerm(term.id, term));
+          }
         } else {
-          await window.votaAPI.createTerm(term);
+          Object.assign(term, await window.votaAPI.createTerm(term));
         }
       }
       for (const subscription of updatedSubscriptions) {
-        const existing = subscriptions.find(s => s.id === subscription.id);
+        const existing = subscriptions.find((record) => record.id === subscription.id);
         if (existing) {
-          await window.votaAPI.updateSubscription(subscription.id, subscription);
+          if (JSON.stringify(existing) !== JSON.stringify(subscription)) {
+            Object.assign(
+              subscription,
+              await window.votaAPI.updateSubscription(subscription.id, subscription)
+            );
+          }
         } else {
-          await window.votaAPI.createSubscription(subscription);
+          Object.assign(subscription, await window.votaAPI.createSubscription(subscription));
         }
       }
       terms = updatedTerms;
@@ -2853,7 +2861,7 @@ function initializeSettings() {
     editingTermId = null;
   }
 
-  termForm.addEventListener("submit", (event) => {
+  termForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     termError.textContent = "";
     if (!storageReady || !termForm.reportValidity()) return;
@@ -2878,15 +2886,15 @@ function initializeSettings() {
       return;
     }
 
-    const updatedTerms = [...terms, { id: nextTermId, name, academicYear, priceCents, startDate, endDate }];
-    if (!saveTerms(updatedTerms)) return;
+    const updatedTerms = [...terms, { id: -nextTermId, name, academicYear, priceCents, startDate, endDate }];
+    if (!(await saveTerms(updatedTerms))) return;
     nextTermId++;
     terms = updatedTerms;
     termForm.reset();
     renderTerms();
   });
 
-  termList.addEventListener("click", (event) => {
+  termList.addEventListener("click", async (event) => {
     const button = event.target.closest("button[data-action]");
     if (!button || !storageReady) return;
     const termId = Number(button.dataset.termId);
@@ -2912,13 +2920,13 @@ function initializeSettings() {
       return;
     }
     const updatedTerms = terms.filter((item) => item.id !== termId);
-    if (!saveTerms(updatedTerms)) return;
+    if (!(await saveTerms(updatedTerms))) return;
     terms = updatedTerms;
     termError.textContent = "";
     renderTerms();
   });
 
-  termPriceForm.addEventListener("submit", (event) => {
+  termPriceForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     priceError.textContent = "";
     if (!storageReady || !termPriceForm.reportValidity()) return;
@@ -2944,7 +2952,7 @@ function initializeSettings() {
         ? { ...subscription, startDate, endDate }
         : subscription
     );
-    if (!saveTermSchedule(updatedTerms, updatedSubscriptions)) return;
+    if (!(await saveTermSchedule(updatedTerms, updatedSubscriptions))) return;
     terms = updatedTerms;
     subscriptions = updatedSubscriptions;
     closePriceDialog();
@@ -2963,21 +2971,8 @@ function initializeSettings() {
   });
 
   try {
-    terms = await readRecords(
-      termsKey,
-      (term) => term && Number.isSafeInteger(term.id) && term.id > 0 &&
-        typeof term.name === "string" && typeof term.academicYear === "string" &&
-        Number.isSafeInteger(term.priceCents) && term.priceCents > 0 &&
-        (term.startDate === undefined || isValidDateOnly(term.startDate)) &&
-        (term.endDate === undefined || isValidDateOnly(term.endDate)),
-      "term"
-    );
-    subscriptions = await readRecords(
-      subscriptionsKey,
-      (subscription) => subscription && Number.isSafeInteger(subscription.id) &&
-        Number.isSafeInteger(subscription.termId),
-      "subscription"
-    );
+    terms = await window.votaAPI.getTerms();
+    subscriptions = await window.votaAPI.getSubscriptions();
     nextTermId = terms.reduce((max, term) => Math.max(max, term.id), 0) + 1;
   } catch (error) {
     setStorageError("تعذر تحميل إعدادات الترم. لم يتم تعديلها.", error);
@@ -2985,7 +2980,7 @@ function initializeSettings() {
   renderTerms();
 }
 
-function initializeSubscriptions() {
+async function initializeSubscriptions() {
   const subscriptionsTable = document.querySelector("#subscriptions-table");
   if (!subscriptionsTable) return;
 
@@ -2994,8 +2989,6 @@ function initializeSubscriptions() {
   const paymentForm = document.querySelector("#payment-form");
   const paymentError = document.querySelector("#payment-error");
   const storageError = document.querySelector("#subscriptions-storage-error");
-  const storageKey = "vota-travel.subscriptions.v1";
-  const studentKey = "vota-travel.students.v1";
   const methodLabels = { cash: "نقدي", transfer: "تحويل", other: "أخرى" };
   const currency = new Intl.NumberFormat("ar-EG", {
     minimumFractionDigits: 2,
@@ -3031,25 +3024,25 @@ function initializeSubscriptions() {
 
   async function persistPayment(updatedSubscriptions, studentId) {
     try {
-      for (const subscription of updatedSubscriptions) {
-        await window.votaAPI.updateSubscription(subscription.id, subscription);
-      }
-      const currentStudents = await window.votaAPI.getStudents();
-      const student = currentStudents.find(s => s.id === studentId);
-      if (!student) {
+      if (!subscriptions.some((subscription) => subscription.studentId === studentId)) {
         throw new TypeError("Payment student record was not found.");
       }
-      await window.votaAPI.updateStudent(studentId, {
-        ...student,
-        updatedAt: new Date().toISOString()
-      });
+      for (const subscription of updatedSubscriptions) {
+        const existing = subscriptions.find((record) => record.id === subscription.id);
+        if (existing && JSON.stringify(existing) !== JSON.stringify(subscription)) {
+          Object.assign(
+            subscription,
+            await window.votaAPI.updateSubscription(subscription.id, subscription)
+          );
+        }
+      }
       subscriptions = updatedSubscriptions;
       storageError.textContent = "";
       storageError.hidden = true;
       return true;
     } catch (error) {
-      console.error("Unable to save payment and student update.", error);
-      storageError.textContent = "تعذر حفظ الدفعة وتحديث ملف الطالب.";
+      console.error("Unable to save the subscription payment.", error);
+      storageError.textContent = "تعذر حفظ الدفعة في قاعدة البيانات.";
       storageError.hidden = false;
       return false;
     }
@@ -3297,11 +3290,11 @@ async function initializeApplication() {
     }
 
     // Initialize page-specific modules
-    initializeStudents();
-    initializeSettings();
-    initializeSubscriptions();
-    initializeStudentPortal();
-    initializeStudentFile();
+    await initializeStudents();
+    await initializeSettings();
+    await initializeSubscriptions();
+    await initializeStudentPortal();
+    await initializeStudentFile();
     initializeTripScheduleManager();
     initializeTripAdmin();
   } catch (error) {
