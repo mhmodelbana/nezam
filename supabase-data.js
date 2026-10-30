@@ -233,7 +233,7 @@
       window.sessionStorage.removeItem("vota-travel.admin-session");
       window.sessionStorage.removeItem("vota-travel.portal-session");
       if (!isLoginPage) {
-        window.location.replace("lojin.html");
+        window.location.replace("index.html");
         return false;
       }
       return true;
@@ -280,7 +280,7 @@
           "vota-travel.login-error",
           "حساب الطالب غير متاح أو تعذر تحميل بياناته. تواصل مع الإدارة."
         );
-        window.location.replace("lojin.html");
+        window.location.replace("index.html");
         return false;
       }
       hydrateStudentState(studentData);
