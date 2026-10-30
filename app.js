@@ -53,6 +53,8 @@ function initializeLogin() {
   const usernameInput = document.querySelector("#username");
   const formMessage = document.querySelector("#form-message");
   const submitButton = loginForm.querySelector('button[type="submit"]');
+  const submitLabel = submitButton.querySelector("span") || submitButton;
+  const defaultSubmitLabel = submitLabel.textContent;
 
   passwordToggle.addEventListener("click", () => {
     const isPasswordHidden = passwordInput.type === "password";
@@ -70,7 +72,7 @@ function initializeLogin() {
     formMessage.textContent = "";
     formMessage.hidden = true;
     submitButton.disabled = true;
-    submitButton.textContent = "جاري تسجيل الدخول...";
+    submitLabel.textContent = "جاري تسجيل الدخول...";
 
     try {
       const loginName = usernameInput.value.trim();
@@ -88,7 +90,7 @@ function initializeLogin() {
         formMessage.textContent = "اسم المستخدم أو كلمة المرور غير صحيحة.";
         formMessage.hidden = false;
         submitButton.disabled = false;
-        submitButton.textContent = "تسجيل الدخول";
+        submitLabel.textContent = defaultSubmitLabel;
         return;
       }
 
@@ -103,7 +105,7 @@ function initializeLogin() {
         formMessage.textContent = "لم يتم تعيين صلاحية لهذا الحساب. تواصل مع الإدارة.";
         formMessage.hidden = false;
         submitButton.disabled = false;
-        submitButton.textContent = "تسجيل الدخول";
+        submitLabel.textContent = defaultSubmitLabel;
         return;
       }
 
@@ -116,14 +118,14 @@ function initializeLogin() {
         formMessage.textContent = "صلاحية الحساب غير صحيحة. تواصل مع الإدارة.";
         formMessage.hidden = false;
         submitButton.disabled = false;
-        submitButton.textContent = "تسجيل الدخول";
+        submitLabel.textContent = defaultSubmitLabel;
       }
     } catch (error) {
       console.error("Unable to authenticate login.", error);
       formMessage.textContent = "حدث خطأ أثناء تسجيل الدخول. حاول مرة أخرى.";
       formMessage.hidden = false;
       submitButton.disabled = false;
-      submitButton.textContent = "تسجيل الدخول";
+      submitLabel.textContent = defaultSubmitLabel;
     }
   });
 }

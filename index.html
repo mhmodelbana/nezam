@@ -10,172 +10,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="app.css">
-  <style>
-    .login-page {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 20px;
-    }
-
-    .login-container {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      padding: 40px;
-      max-width: 400px;
-      width: 100%;
-      animation: slideUp 0.5s ease-out;
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .login-brand {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .login-brand .brand-mark {
-      display: inline-block;
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border-radius: 15px;
-      font-size: 28px;
-      font-weight: 800;
-      line-height: 60px;
-      margin-bottom: 15px;
-    }
-
-    .login-brand span {
-      font-size: 24px;
-      color: #333;
-    }
-
-    .login-brand strong {
-      color: #667eea;
-    }
-
-    .login-form {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .form-group label {
-      font-size: 14px;
-      font-weight: 600;
-      color: #555;
-    }
-
-    .form-group input {
-      padding: 12px 16px;
-      border: 2px solid #e0e0e0;
-      border-radius: 10px;
-      font-size: 16px;
-      transition: all 0.3s ease;
-      font-family: 'Tajawal', sans-serif;
-    }
-
-    .form-group input:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .password-input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .password-input-wrapper input {
-      width: 100%;
-      padding-left: 50px;
-    }
-
-    #password-toggle {
-      position: absolute;
-      left: 12px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 20px;
-      padding: 5px;
-      transition: transform 0.2s ease;
-    }
-
-    #password-toggle:hover {
-      transform: scale(1.1);
-    }
-
-    .form-message {
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      text-align: center;
-      background: #fee;
-      color: #c33;
-      border: 1px solid #fcc;
-    }
-
-    .primary-button {
-      padding: 14px 24px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-family: 'Tajawal', sans-serif;
-    }
-
-    .primary-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-    }
-
-    .primary-button:active {
-      transform: translateY(0);
-    }
-
-    @media (max-width: 480px) {
-      .login-container {
-        padding: 30px 20px;
-      }
-
-      .login-brand .brand-mark {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-        line-height: 50px;
-      }
-
-      .login-brand span {
-        font-size: 20px;
-      }
-    }
-  </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js" defer></script>
   <script src="supabase-data.js" defer></script>
@@ -183,29 +17,112 @@
   <script src="app.js" defer></script>
 </head>
 <body class="login-page">
-  <div class="login-container">
-    <div class="login-brand">
-      <div class="brand-mark">v.</div>
-      <span>Vota <strong>Travel</strong></span>
-    </div>
-    <form id="login-form" class="login-form">
-      <div class="form-group">
-        <label for="username">اسم المستخدم أو البريد الإلكتروني</label>
-        <input type="text" id="username" name="username" required autocomplete="username" placeholder="أدخل اسم المستخدم">
+  <main class="login-layout">
+    <aside class="login-showcase" aria-label="عن بوابة Vota Travel">
+      <div class="showcase-orbit showcase-orbit-one" aria-hidden="true"></div>
+      <div class="showcase-orbit showcase-orbit-two" aria-hidden="true"></div>
+      <div class="showcase-topline">
+        <a class="login-brand" href="index.html" aria-label="Vota Travel">
+          <span class="brand-mark" aria-hidden="true">v.</span>
+          <span>Vota <strong>Travel</strong></span>
+        </a>
+        <span class="showcase-edition">بوابة خدمات الطلاب</span>
       </div>
-      <div class="form-group">
-        <label for="password">كلمة المرور</label>
-        <div class="password-input-wrapper">
-          <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="أدخل كلمة المرور">
-          <button type="button" id="password-toggle" aria-pressed="false" aria-label="إظهار كلمة المرور">
-            👁️
-          </button>
+
+      <div class="showcase-content">
+        <span class="showcase-kicker"><span></span> رحلتك الجامعية، أسهل</span>
+        <h1>كل تفاصيل<br>مشوارك <em>في مكان واحد.</em></h1>
+        <p>تابع اشتراكك، بياناتك، ومواعيد رحلاتك اليومية من بوابة واحدة صُممت لراحتك.</p>
+
+        <div class="route-preview" aria-label="معاينة رحلة الجامعة">
+          <div class="route-preview-heading">
+            <span>رحلتك القادمة</span>
+            <span class="route-live"><i></i> جاهزة</span>
+          </div>
+          <div class="route-line">
+            <span class="route-stop route-stop-start"></span>
+            <span class="route-dash"></span>
+            <span class="route-bus" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M5 16.5V6.8A2.8 2.8 0 0 1 7.8 4h8.4A2.8 2.8 0 0 1 19 6.8v9.7m-14 0h14m-14 0-1.5 2v1h2m13.5-3 1.5 2v1h-2M7 8h10v5H7V8Zm1 8.5h.01M16 16.5h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="route-dash"></span>
+            <span class="route-stop route-stop-end"></span>
+          </div>
+          <div class="route-labels">
+            <span><strong>نقطة الركوب</strong><small>قريب منك</small></span>
+            <span><strong>الجامعة</strong><small>على موعدك</small></span>
+          </div>
         </div>
       </div>
-      <p id="form-message" class="form-message" hidden></p>
-      <button type="submit" class="primary-button">تسجيل الدخول</button>
-    </form>
-  </div>
+
+      <div class="showcase-footer">
+        <span class="showcase-shield" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2.5 16 5v4.4c0 3.7-2.5 6.4-6 8.1-3.5-1.7-6-4.4-6-8.1V5l6-2.5Z" stroke="currentColor" stroke-width="1.5"/><path d="m7.5 9.8 1.7 1.7 3.4-3.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span>بياناتك وحسابك في أمان</span>
+        <span class="showcase-footer-dot"></span>
+        <span>Vota Travel</span>
+      </div>
+    </aside>
+
+    <section class="login-panel" aria-labelledby="login-title">
+      <div class="login-panel-top">
+        <span class="login-mobile-label">بوابة Vota Travel</span>
+        <span class="login-secure-label">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="4.5" y="8.5" width="11" height="8" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 8.5V6a3 3 0 1 1 6 0v2.5m-3 3v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          اتصال آمن
+        </span>
+      </div>
+
+      <div class="login-content">
+        <div class="login-heading">
+          <span class="login-heading-mark" aria-hidden="true">أهلًا بعودتك</span>
+          <h2 id="login-title">سجّل دخولك</h2>
+          <p>ادخل إلى حسابك وتابع كل ما يخص رحلتك.</p>
+        </div>
+
+        <form id="login-form" class="login-form">
+          <div class="form-group">
+            <label for="username">اسم المستخدم أو البريد الإلكتروني</label>
+            <div class="login-input-wrap">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="6.3" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4.2 16.5a5.8 5.8 0 0 1 11.6 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <input type="text" id="username" name="username" required autocomplete="username" placeholder="مثال: VT-0001 أو بريدك الإلكتروني">
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="login-label-row">
+              <label for="password">كلمة المرور</label>
+              <span class="login-hint">أدخل كلمة المرور الخاصة بحسابك</span>
+            </div>
+            <div class="password-input-wrapper login-input-wrap">
+              <svg class="login-field-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="4.5" y="8.5" width="11" height="8" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 8.5V6a3 3 0 1 1 6 0v2.5m-3 3v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="اكتب كلمة المرور">
+              <button type="button" id="password-toggle" aria-pressed="false" aria-label="إظهار كلمة المرور">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2.5 10s2.7-4.5 7.5-4.5 7.5 4.5 7.5 4.5-2.7 4.5-7.5 4.5S2.5 10 2.5 10Z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2" stroke="currentColor" stroke-width="1.5"/></svg>
+              </button>
+            </div>
+          </div>
+          <p id="form-message" class="form-message" role="alert" hidden></p>
+          <button type="submit" class="primary-button login-submit">
+            <span>دخول إلى حسابي</span>
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h11m0 0-4-4m4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </form>
+
+        <div class="login-help">
+          <span class="login-help-icon" aria-hidden="true">؟</span>
+          <p>واجهت مشكلة في الدخول؟<br><span>تواصل مع إدارة Vota Travel لمساعدتك.</span></p>
+        </div>
+      </div>
+
+      <footer class="login-panel-footer">
+        <span>© Vota Travel</span>
+        <span>بوابتك الجامعية، بكل سهولة</span>
+      </footer>
+    </section>
+  </main>
 </body>
 </html>
  

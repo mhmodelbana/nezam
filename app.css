@@ -662,6 +662,1571 @@ body.dashboard-page {
   }
 }
 
+/* Shared visual system */
+:root {
+  color-scheme: light;
+  --green: #28563f;
+  --green-dark: #1d4330;
+  --green-soft: #edf4ee;
+  --lime: #dceba7;
+  --ink: #26352c;
+  --muted: #748078;
+  --line: #e4e9e3;
+  --surface: #fff;
+  --surface-soft: #f8faf7;
+  --page: #f4f6f2;
+  --danger: #a64e43;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --shadow-card: 0 8px 26px rgba(34, 57, 41, .055);
+  --shadow-popover: 0 22px 65px rgba(31, 48, 36, .18);
+}
+
+html {
+  min-width: 320px;
+  background: var(--page);
+  scroll-behavior: smooth;
+}
+
+body.dashboard-page,
+body.students-page,
+body.settings-page,
+body.subscriptions-page,
+body.trips-page,
+body.portal-page,
+body.student-profile-page {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(ellipse at 92% 0, rgba(220, 235, 214, .42), transparent 30%),
+    var(--page);
+  color: var(--ink);
+  font-family: "Tajawal", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.dashboard-page {
+  padding: 0 0 28px;
+}
+
+body :where(button, input, select, textarea) {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(81, 131, 91, .3);
+  outline-offset: 3px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: .58;
+  transform: none !important;
+}
+
+.topbar {
+  min-height: 76px;
+  padding-inline: max(24px, calc((100vw - 1200px) / 2));
+  border-bottom-color: rgba(57, 79, 61, .1);
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 2px 12px rgba(37, 55, 40, .025);
+  backdrop-filter: blur(14px);
+}
+
+.brand,
+.logout-link,
+.date-time {
+  color: var(--ink);
+}
+
+.brand-mark {
+  background: var(--green);
+  box-shadow: 0 5px 12px rgba(40, 86, 63, .16);
+}
+
+.logout-link {
+  color: var(--muted);
+}
+
+.logout-link:hover {
+  color: var(--danger);
+}
+
+.page-content,
+.subscriptions-content,
+.settings-content,
+.trips-content,
+.portal-content,
+.student-profile-content {
+  width: min(1200px, calc(100% - 48px));
+  margin: 32px auto 64px;
+}
+
+.settings-content,
+.portal-content,
+.student-profile-content {
+  width: min(1000px, calc(100% - 48px));
+}
+
+.page-heading {
+  margin-block: 20px 28px;
+}
+
+.page-heading h1,
+.portal-home-heading h1,
+.portal-section-heading h1,
+.portal-welcome h1,
+.student-profile-heading h1 {
+  color: var(--ink);
+  letter-spacing: -.25px;
+}
+
+.page-heading p,
+.portal-home-heading p,
+.portal-section-heading p,
+.portal-welcome p,
+.student-profile-heading p {
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.eyebrow,
+.panel-kicker {
+  color: #55735f;
+}
+
+.primary-button,
+.settings-page .primary-button {
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  background: var(--green);
+  box-shadow: 0 5px 14px rgba(40, 86, 63, .14);
+  font-size: 13px;
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.primary-button:hover:not(:disabled),
+.settings-page .primary-button:hover:not(:disabled) {
+  background: var(--green-dark);
+  box-shadow: 0 8px 18px rgba(40, 86, 63, .19);
+}
+
+.secondary-button,
+.settings-page .secondary-button {
+  min-height: 42px;
+  border-color: var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.secondary-button:hover:not(:disabled),
+.settings-page .secondary-button:hover:not(:disabled) {
+  border-color: #c8d6c9;
+  background: var(--surface-soft);
+}
+
+.students-panel,
+.subscription-panel,
+.trip-admin-panel,
+.trip-admin-browser,
+.trip-admin-manifest,
+.trip-schedule-manager,
+.portal-card,
+.portal-password-panel,
+.settings-trip-schedule-manager {
+  border-color: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.panel-heading,
+.subscription-panel-heading,
+.table-panel-heading,
+.portal-card-heading,
+.trip-admin-toolbar,
+.trip-admin-browser-heading,
+.trip-admin-manifest-heading {
+  border-color: #edf0ec;
+}
+
+.panel-heading h2,
+.subscription-panel-heading h2,
+.portal-card-heading h2,
+.trip-admin-toolbar h2,
+.trip-admin-browser-heading h2,
+.trip-admin-manifest-heading h2 {
+  color: var(--ink);
+}
+
+.student-stat-card,
+.subscription-stat,
+.trip-stats article {
+  border-color: var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 5px 18px rgba(34, 57, 41, .04);
+}
+
+.student-stat-card > strong,
+.subscription-stat > strong,
+.trip-stats article strong {
+  color: var(--ink);
+}
+
+.student-stat-label,
+.stat-label,
+.trip-stats article span {
+  color: var(--muted);
+}
+
+.module-card {
+  border-color: var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(34, 57, 41, .05);
+}
+
+.module-card:hover {
+  border-color: #cbd9cc;
+  box-shadow: 0 14px 30px rgba(34, 57, 41, .09);
+}
+
+.dashboard:not(.portal-dashboard) {
+  width: min(900px, 100%);
+  gap: 18px;
+}
+
+.dashboard .trips-card {
+  grid-column: auto;
+}
+
+.student-toolbar,
+.subscription-panel-heading,
+.trip-admin-toolbar,
+.trip-admin-manifest-tools {
+  gap: 12px;
+}
+
+.student-toolbar .search-box,
+.subscription-search,
+.student-filter select,
+.trip-admin-toolbar input,
+.trip-admin-toolbar select,
+.trip-admin-date input,
+.trip-admin-manifest-tools input,
+.trip-admin-manifest-tools select,
+.trip-schedule-form input,
+.trip-schedule-form select,
+.form-field input,
+.form-field select,
+.form-field textarea,
+.subscription-field input,
+.subscription-field select,
+.credential-value input {
+  min-height: 42px;
+  border-color: #dfe6df;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--ink);
+}
+
+.student-toolbar .search-box:focus-within,
+.subscription-search:focus-within,
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus,
+.subscription-field input:focus,
+.subscription-field select:focus,
+.trip-admin-toolbar input:focus,
+.trip-admin-toolbar select:focus,
+.trip-schedule-form input:focus,
+.trip-schedule-form select:focus {
+  border-color: #83a28a;
+  box-shadow: 0 0 0 3px rgba(81, 131, 91, .1);
+}
+
+.form-field > span,
+.subscription-field > span:first-child,
+.student-filter,
+.trip-schedule-form label {
+  color: #46564b;
+}
+
+.table-wrap,
+.subscriptions-table-wrap,
+.profile-subscriptions-wrap,
+.trip-admin-table-wrap,
+.trip-schedule-table-wrap {
+  scrollbar-color: #c8d4c9 #f3f6f2;
+  scrollbar-width: thin;
+}
+
+table th,
+.trip-admin-table th,
+.trip-schedule-table th,
+.trip-roster-table th {
+  background: #f7f9f6;
+  color: #68766d;
+}
+
+table td,
+.trip-admin-table td,
+.trip-schedule-table td,
+.trip-roster-table td {
+  border-color: #edf0ec;
+  color: #4e5e53;
+}
+
+tbody tr:hover {
+  background-color: #f9fbf8;
+}
+
+.status-badge,
+.payment-status,
+.trip-schedule-status {
+  letter-spacing: 0;
+}
+
+.student-action {
+  min-height: 30px;
+  border-color: #e2e8e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #4b6a53;
+}
+
+.student-action:hover:not(:disabled) {
+  border-color: #bdcfbd;
+  background: #f4f8f3;
+}
+
+.student-view-tabs {
+  border-color: #edf0ec;
+}
+
+.empty-state,
+.subscriptions-empty,
+.trip-admin-empty {
+  color: var(--muted);
+}
+
+.student-dialog,
+.payment-dialog,
+.credential-dialog,
+.term-price-dialog {
+  border-color: var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-popover);
+}
+
+dialog::backdrop {
+  background: rgba(25, 39, 29, .48);
+  backdrop-filter: blur(4px);
+}
+
+.dialog-heading h2 {
+  color: var(--ink);
+}
+
+.portal-details > div {
+  border-color: #edf0ec;
+}
+
+.portal-details dt,
+.portal-code span {
+  color: var(--muted);
+}
+
+.portal-details dd {
+  color: #35473b;
+  line-height: 1.65;
+}
+
+.trip-schedule-card,
+.trip-admin-time-card,
+.trip-admin-direction {
+  border-color: var(--line);
+  border-radius: 14px;
+  box-shadow: 0 5px 17px rgba(34, 57, 41, .04);
+}
+
+.trip-schedule-card:hover,
+.trip-admin-time-card:hover,
+.trip-admin-direction:hover,
+.trip-admin-direction.is-selected {
+  border-color: #c2d3c3;
+}
+
+.settings-terms-panel {
+  max-width: none;
+}
+
+.supabase-sync-message {
+  z-index: 100;
+  border-radius: 12px;
+  box-shadow: var(--shadow-popover);
+  font-size: 13px;
+}
+
+/* Login */
+body.login-page {
+  min-width: 320px;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(18px, 4vw, 52px);
+  background:
+    radial-gradient(ellipse at 10% 12%, rgba(216, 231, 207, .74), transparent 33%),
+    radial-gradient(ellipse at 90% 92%, rgba(226, 234, 215, .72), transparent 34%),
+    var(--page);
+  color: var(--ink);
+}
+
+.login-layout {
+  position: relative;
+  isolation: isolate;
+  width: min(1190px, 100%);
+  min-height: min(730px, calc(100svh - 104px));
+  display: grid;
+  grid-template-columns: minmax(0, 1.04fr) minmax(0, .96fr);
+  overflow: hidden;
+  border: 1px solid rgba(37, 62, 44, .1);
+  border-radius: 30px;
+  background: var(--surface);
+  box-shadow:
+    0 34px 90px rgba(35, 55, 39, .13),
+    0 7px 22px rgba(35, 55, 39, .045);
+  animation: login-enter .45s cubic-bezier(.2, .75, .25, 1) both;
+}
+
+@keyframes login-enter {
+  from { opacity: 0; transform: translateY(14px) scale(.99); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-showcase {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: clamp(30px, 4vw, 52px);
+  background:
+    radial-gradient(ellipse at 12% 100%, rgba(155, 181, 111, .22), transparent 45%),
+    radial-gradient(ellipse at 100% 0, rgba(89, 130, 94, .26), transparent 43%),
+    linear-gradient(145deg, #1d4431 0%, #173b2b 48%, #102f23 100%);
+  color: #fff;
+}
+
+.login-showcase::before,
+.login-showcase::after {
+  position: absolute;
+  z-index: -1;
+  border: 1px solid rgba(220, 235, 199, .12);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.login-showcase::before {
+  width: 640px;
+  height: 640px;
+  inset: auto auto -330px -220px;
+  box-shadow:
+    0 0 0 42px rgba(220, 235, 199, .025),
+    0 0 0 86px rgba(220, 235, 199, .02);
+}
+
+.login-showcase::after {
+  width: 380px;
+  height: 380px;
+  inset: -220px -185px auto auto;
+  border-color: rgba(220, 235, 199, .08);
+  box-shadow: 0 0 0 36px rgba(220, 235, 199, .025);
+}
+
+.showcase-orbit {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.showcase-orbit-one {
+  width: 9px;
+  height: 9px;
+  inset: 30% 13% auto auto;
+  background: #e2edb7;
+  box-shadow: 0 0 0 8px rgba(226, 237, 183, .08), 0 0 25px rgba(226, 237, 183, .7);
+}
+
+.showcase-orbit-two {
+  width: 5px;
+  height: 5px;
+  inset: 43% auto auto 12%;
+  background: rgba(234, 241, 213, .75);
+  box-shadow: 0 0 20px rgba(234, 241, 213, .65);
+}
+
+.showcase-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.login-brand {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-family: "DM Sans", "Tajawal", sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  direction: ltr;
+  text-decoration: none;
+}
+
+.login-brand strong {
+  color: #dceba7;
+}
+
+.login-brand .brand-mark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 14px;
+  background: linear-gradient(145deg, #dceba7, #c0d486);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .12);
+  color: #244631;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.showcase-edition {
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .07);
+  color: rgba(255, 255, 255, .78);
+  font-size: 11px;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+}
+
+.showcase-content {
+  width: min(480px, 100%);
+  margin-block: auto;
+  padding-block: 55px 38px;
+}
+
+.showcase-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: rgba(239, 245, 224, .83);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.showcase-kicker > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dceba7;
+  box-shadow: 0 0 0 5px rgba(220, 235, 167, .12);
+}
+
+.showcase-content h1 {
+  margin: 20px 0 14px;
+  color: #fff;
+  font-size: clamp(36px, 4.3vw, 57px);
+  font-weight: 800;
+  letter-spacing: -.8px;
+  line-height: 1.32;
+}
+
+.showcase-content h1 em {
+  color: #dceba7;
+  font-style: normal;
+}
+
+.showcase-content > p {
+  max-width: 390px;
+  margin: 0;
+  color: rgba(238, 244, 235, .73);
+  font-size: 15px;
+  line-height: 1.95;
+}
+
+.route-preview {
+  width: min(420px, 100%);
+  margin-top: 37px;
+  padding: 18px 20px 16px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .055));
+  box-shadow: 0 16px 38px rgba(5, 24, 14, .14);
+  backdrop-filter: blur(14px);
+}
+
+.route-preview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: rgba(255, 255, 255, .82);
+  font-size: 12px;
+}
+
+.route-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #e0edb8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.route-live i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #cde58b;
+  box-shadow: 0 0 0 4px rgba(205, 229, 139, .1);
+}
+
+.route-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block: 22px 12px;
+  direction: ltr;
+}
+
+.route-stop {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 11px;
+  border: 2px solid #dceba7;
+  border-radius: 50%;
+  background: #204832;
+  box-shadow: 0 0 0 4px rgba(220, 235, 167, .08);
+}
+
+.route-stop-end {
+  border-color: #fff;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, .1);
+}
+
+.route-dash {
+  height: 2px;
+  flex: 1;
+  background: repeating-linear-gradient(90deg, rgba(220, 235, 167, .65) 0 5px, transparent 5px 10px);
+}
+
+.route-bus {
+  width: 35px;
+  height: 35px;
+  flex: 0 0 35px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 11px;
+  background: #dceba7;
+  color: #244631;
+}
+
+.route-bus svg {
+  width: 21px;
+  height: 21px;
+}
+
+.route-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.route-labels > span {
+  display: grid;
+  gap: 3px;
+}
+
+.route-labels > span:last-child {
+  text-align: left;
+}
+
+.route-labels strong {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.route-labels small {
+  color: rgba(238, 244, 235, .6);
+  font-size: 10px;
+}
+
+.showcase-footer {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: rgba(238, 244, 235, .67);
+  font-size: 11px;
+}
+
+.showcase-shield {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 9px;
+  color: #dceba7;
+}
+
+.showcase-shield svg {
+  width: 17px;
+  height: 17px;
+}
+
+.showcase-footer-dot {
+  width: 3px;
+  height: 3px;
+  margin-inline: 3px;
+  border-radius: 50%;
+  background: #dceba7;
+}
+
+.login-panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(28px, 4.2vw, 54px);
+  background:
+    radial-gradient(ellipse at 100% 0, rgba(237, 244, 232, .7), transparent 34%),
+    #fff;
+}
+
+.login-panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.login-mobile-label {
+  display: none;
+  color: var(--green);
+  font-family: "DM Sans", "Tajawal", sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  direction: ltr;
+}
+
+.login-secure-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border: 1px solid #e6ede5;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .8);
+  color: #66806b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.login-secure-label svg {
+  width: 16px;
+  height: 16px;
+}
+
+.login-content {
+  width: min(390px, 100%);
+  margin: auto;
+  padding-block: 42px;
+}
+
+.login-heading {
+  margin-bottom: 30px;
+}
+
+.login-heading-mark {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #66806b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.login-heading h2 {
+  margin: 0;
+  color: #26372c;
+  font-size: clamp(29px, 3vw, 36px);
+  font-weight: 800;
+  letter-spacing: -.4px;
+  line-height: 1.35;
+}
+
+.login-heading p {
+  margin: 8px 0 0;
+  color: #7d8980;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.login-form {
+  display: grid;
+  gap: 20px;
+}
+
+.form-group {
+  display: grid;
+  min-width: 0;
+  gap: 9px;
+}
+
+.form-group label {
+  color: #3e4c42;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.login-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.login-label-row label {
+  margin: 0;
+}
+
+.login-hint {
+  color: #9aa49c;
+  font-size: 10px;
+}
+
+.login-input-wrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding-inline: 15px;
+  border: 1px solid #e1e8e1;
+  border-radius: 13px;
+  background: #fff;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.login-input-wrap:focus-within {
+  border-color: #82a18a;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(81, 131, 91, .095);
+}
+
+.login-input-wrap > svg,
+.login-input-wrap .login-field-icon {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  color: #829187;
+}
+
+.login-input-wrap input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #26372c;
+  font-family: "Tajawal", sans-serif;
+  font-size: 13px;
+  text-align: right;
+}
+
+.login-input-wrap input:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+.login-input-wrap input::placeholder {
+  color: #a4ada6;
+}
+
+.login-input-wrap.password-input-wrapper {
+  padding-inline-start: 15px;
+  padding-inline-end: 9px;
+}
+
+#password-toggle {
+  position: static;
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  min-height: 38px;
+  display: grid;
+  flex: 0 0 38px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #829187;
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease;
+}
+
+#password-toggle:hover {
+  background: #eff5ef;
+  color: var(--green);
+}
+
+#password-toggle svg {
+  width: 19px;
+  height: 19px;
+}
+
+.login-submit,
+.login-form .primary-button {
+  width: 100%;
+  min-height: 54px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 3px;
+  padding-inline: 19px;
+  border: 0;
+  border-radius: 13px;
+  background: linear-gradient(110deg, #28563f, #214a36);
+  box-shadow: 0 8px 18px rgba(40, 86, 63, .2);
+  color: #fff;
+  font-family: "Tajawal", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.login-submit:hover:not(:disabled),
+.login-form .primary-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: linear-gradient(110deg, #214a36, #193e2d);
+  box-shadow: 0 12px 24px rgba(40, 86, 63, .24);
+}
+
+.login-submit > svg {
+  width: 19px;
+  height: 19px;
+  transform: scaleX(-1);
+}
+
+.login-page .form-message {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid #f0d4ce;
+  border-radius: 11px;
+  background: #fff6f4;
+  color: #a64e43;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.login-help {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 25px;
+  padding: 14px;
+  border: 1px solid #e9eee8;
+  border-radius: 13px;
+  background: rgba(248, 250, 247, .82);
+}
+
+.login-help-icon {
+  width: 31px;
+  height: 31px;
+  flex: 0 0 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #edf4ee;
+  color: #55735f;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.login-help p {
+  margin: 0;
+  color: #526057;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.65;
+}
+
+.login-help p span {
+  color: #879289;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.login-panel-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #9aa49c;
+  font-size: 10px;
+}
+
+.login-panel-footer span:first-child {
+  font-family: "DM Sans", sans-serif;
+  direction: ltr;
+}
+
+@media (max-width: 760px) {
+  body.login-page {
+    padding: 22px;
+  }
+
+  .login-layout {
+    width: min(560px, 100%);
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    border-radius: 25px;
+  }
+
+  .login-showcase {
+    min-height: 116px;
+    justify-content: center;
+    padding: 23px 30px;
+  }
+
+  .login-showcase::before,
+  .login-showcase::after,
+  .showcase-orbit,
+  .showcase-content,
+  .showcase-footer {
+    display: none;
+  }
+
+  .login-panel {
+    min-height: 570px;
+    padding: 25px clamp(28px, 8vw, 52px) 26px;
+  }
+
+  .login-mobile-label {
+    display: inline-block;
+  }
+
+  .login-content {
+    padding-block: 35px;
+  }
+}
+
+/* Responsive layout */
+@media (max-width: 1024px) {
+  .page-content,
+  .subscriptions-content,
+  .settings-content,
+  .trips-content,
+  .portal-content,
+  .student-profile-content {
+    width: calc(100% - 40px);
+  }
+
+  .student-stat-grid,
+  .subscription-stats,
+  .trip-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-toolbar {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .student-toolbar .search-box {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .student-toolbar .student-filter,
+  .student-toolbar .student-filter select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .student-toolbar .export-students-button {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  body.dashboard-page {
+    padding-bottom: 22px;
+  }
+
+  .topbar {
+    min-height: 68px;
+    grid-template-columns: 1fr auto;
+    gap: 8px 12px;
+    padding: 10px 20px;
+  }
+
+  .date-time {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
+    font-size: 11px;
+  }
+
+  .logout-link {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .dashboard:not(.portal-dashboard) {
+    margin-top: 42px;
+  }
+
+  .page-content,
+  .subscriptions-content,
+  .settings-content,
+  .trips-content,
+  .portal-content,
+  .student-profile-content {
+    width: calc(100% - 32px);
+    margin-top: 24px;
+  }
+
+  .page-heading,
+  .portal-welcome,
+  .student-profile-heading,
+  .trip-admin-browser-heading,
+  .trip-admin-manifest-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .page-heading {
+    margin-bottom: 22px;
+  }
+
+  .page-heading > .primary-button,
+  .page-heading .primary-button,
+  .student-profile-heading .primary-button {
+    width: 100%;
+  }
+
+  .table-panel-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .subscription-search {
+    width: 100%;
+  }
+
+  .trip-admin-browser-heading,
+  .trip-admin-manifest-heading {
+    padding: 17px;
+  }
+
+  .trip-admin-date,
+  .trip-admin-manifest-tools label,
+  .trip-admin-manifest-tools .trip-admin-manifest-search {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    padding-inline: 16px;
+  }
+
+  .brand {
+    gap: 7px;
+    font-size: 14px;
+  }
+
+  .brand-mark {
+    width: 31px;
+    height: 31px;
+    border-radius: 10px;
+  }
+
+  .logout-link {
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .page-content,
+  .subscriptions-content,
+  .settings-content,
+  .trips-content,
+  .portal-content,
+  .student-profile-content {
+    width: calc(100% - 28px);
+    margin-bottom: 40px;
+  }
+
+  .page-heading h1,
+  .trips-page .page-heading h1 {
+    font-size: 27px;
+  }
+
+  .page-heading p {
+    font-size: 13px;
+  }
+
+  .student-stat-grid,
+  .subscription-stats,
+  .trip-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .student-stat-card,
+  .subscription-stat,
+  .trip-stats article {
+    min-width: 0;
+    padding: 14px;
+  }
+
+  .student-stat-card {
+    min-height: 112px;
+    grid-template-columns: 36px minmax(0, 1fr);
+    column-gap: 9px;
+  }
+
+  .student-stat-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .student-stat-card > strong,
+  .subscription-stat > strong {
+    font-size: 18px;
+    overflow-wrap: anywhere;
+  }
+
+  .student-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 12px;
+  }
+
+  .student-toolbar .search-box {
+    grid-column: 1 / -1;
+  }
+
+  .student-toolbar .student-sort,
+  .student-toolbar .export-students-button {
+    grid-column: 1 / -1;
+  }
+
+  .student-view-tabs {
+    gap: 3px;
+    padding-inline: 12px;
+  }
+
+  .student-view-tab {
+    min-height: 44px;
+    padding-inline: 9px;
+    font-size: 12px;
+  }
+
+  .panel-heading,
+  .subscription-panel-heading,
+  .trip-admin-toolbar {
+    padding: 15px;
+  }
+
+  .table-wrap,
+  .subscriptions-table-wrap,
+  .profile-subscriptions-wrap,
+  .trip-admin-table-wrap,
+  .trip-schedule-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  table,
+  .subscriptions-table,
+  .profile-subscriptions,
+  .trip-admin-table,
+  .trip-schedule-table {
+    min-width: 690px;
+  }
+
+  .portal-home-heading h1,
+  .portal-section-heading h1,
+  .portal-welcome h1,
+  .student-profile-heading h1,
+  .portal-password-panel h1 {
+    font-size: 25px;
+    line-height: 1.4;
+  }
+
+  .portal-details {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-details .portal-detail-wide {
+    grid-column: auto;
+  }
+
+  .portal-card-heading,
+  .portal-payment-history {
+    padding-inline: 16px;
+  }
+
+  .portal-password-panel {
+    margin-block: 24px;
+    padding: 21px 17px;
+  }
+
+  .portal-password-form .primary-button {
+    width: 100%;
+  }
+
+  .trip-schedule-card {
+    min-height: 220px;
+    padding: 17px;
+  }
+
+  .trip-admin-directions {
+    grid-template-columns: 1fr;
+    padding-inline: 14px;
+  }
+
+  .trip-admin-schedules,
+  .trip-schedule-cards {
+    grid-template-columns: 1fr;
+    padding-inline: 14px;
+  }
+
+  .trip-direction-picker {
+    padding-inline: 14px;
+  }
+
+  .trip-direction-choice {
+    min-width: 0;
+    flex: 1 1 130px;
+  }
+
+  .trip-schedule-form,
+  .settings-trip-schedule-manager .trip-schedule-form,
+  .settings-term-form {
+    grid-template-columns: 1fr;
+    padding-inline: 15px;
+  }
+
+  .trip-schedule-form-actions,
+  .settings-trip-schedule-manager .trip-schedule-form-actions {
+    grid-column: auto;
+    flex-wrap: wrap;
+  }
+
+  .trip-schedule-form-actions > *,
+  .dialog-actions > * {
+    flex: 1 1 120px;
+  }
+
+  .student-dialog,
+  .payment-dialog,
+  .credential-dialog,
+  .term-price-dialog {
+    width: calc(100% - 24px);
+    max-width: none;
+    max-height: calc(100dvh - 24px);
+    border-radius: 18px;
+  }
+
+  .student-form,
+  .payment-form,
+  .credential-content {
+    padding: 20px 17px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .form-field-wide {
+    grid-column: auto;
+  }
+
+  .dialog-actions {
+    flex-wrap: wrap;
+  }
+
+  .trip-booking-error {
+    margin-inline: 14px;
+  }
+
+  .supabase-sync-message {
+    inset-inline: 12px;
+    inset-block-end: 12px;
+    max-width: none;
+  }
+
+  body.login-page {
+    padding: 14px;
+  }
+
+  .login-layout {
+    border-radius: 21px;
+  }
+
+  .login-showcase {
+    min-height: 94px;
+    padding: 18px 22px;
+  }
+
+  .login-showcase .login-brand {
+    gap: 8px;
+    font-size: 16px;
+  }
+
+  .login-showcase .login-brand .brand-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    font-size: 19px;
+  }
+
+  .showcase-edition {
+    padding: 7px 10px;
+    font-size: 10px;
+  }
+
+  .login-panel {
+    min-height: 0;
+    padding: 22px clamp(20px, 6vw, 34px) 20px;
+  }
+
+  .login-content {
+    padding-block: 28px;
+  }
+
+  .login-heading {
+    margin-bottom: 24px;
+  }
+
+  .login-form {
+    gap: 17px;
+  }
+
+  .login-help {
+    margin-top: 21px;
+  }
+}
+
+@media (max-width: 380px) {
+  .date-time {
+    gap: 7px;
+    font-size: 10px;
+  }
+
+  .logout-link span {
+    max-width: 78px;
+  }
+
+  .student-stat-grid,
+  .subscription-stats,
+  .trip-stats {
+    gap: 8px;
+  }
+
+  .student-stat-card,
+  .subscription-stat,
+  .trip-stats article {
+    padding: 11px;
+  }
+
+  .student-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .student-toolbar > * {
+    grid-column: 1;
+  }
+
+  .login-showcase {
+    padding-inline: 16px;
+  }
+
+  .login-showcase .login-brand {
+    font-size: 14px;
+  }
+
+  .showcase-edition {
+    padding-inline: 8px;
+    font-size: 9px;
+  }
+
+  .login-panel {
+    padding-inline: 17px;
+  }
+
+  .login-hint {
+    display: none;
+  }
+
+  .login-help {
+    padding: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
 @media (max-width: 760px) {
   .settings-trip-schedule-manager .trip-schedule-form {
     grid-template-columns: 1fr 1fr;
