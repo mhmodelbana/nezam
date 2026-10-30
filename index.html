@@ -3,8 +3,208 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="0;url=dashboard.html">
+  <meta name="theme-color" content="#f5f6f1">
+  <meta name="description" content="تسجيل الدخول إلى Vota Travel - نظام إدارة رحلات الجامعة">
+  <title>تسجيل الدخول | Vota Travel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+  <style>
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+    }
+
+    .login-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      max-width: 400px;
+      width: 100%;
+      animation: slideUp 0.5s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .login-brand {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .login-brand .brand-mark {
+      display: inline-block;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 15px;
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 60px;
+      margin-bottom: 15px;
+    }
+
+    .login-brand span {
+      font-size: 24px;
+      color: #333;
+    }
+
+    .login-brand strong {
+      color: #667eea;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .form-group input {
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .password-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .password-input-wrapper input {
+      width: 100%;
+      padding-left: 50px;
+    }
+
+    #password-toggle {
+      position: absolute;
+      left: 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      padding: 5px;
+      transition: transform 0.2s ease;
+    }
+
+    #password-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    .form-message {
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+      background: #fee;
+      color: #c33;
+      border: 1px solid #fcc;
+    }
+
+    .primary-button {
+      padding: 14px 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    .primary-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .primary-button:active {
+      transform: translateY(0);
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 30px 20px;
+      }
+
+      .login-brand .brand-mark {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        line-height: 50px;
+      }
+
+      .login-brand span {
+        font-size: 20px;
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="supabase-data.js" defer></script>
+  <script src="supabase-api.js" defer></script>
+  <script src="app.js" defer></script>
 </head>
-<body>
+<body class="login-page">
+  <div class="login-container">
+    <div class="login-brand">
+      <div class="brand-mark">v.</div>
+      <span>Vota <strong>Travel</strong></span>
+    </div>
+    <form id="login-form" class="login-form">
+      <div class="form-group">
+        <label for="username">اسم المستخدم أو البريد الإلكتروني</label>
+        <input type="text" id="username" name="username" required autocomplete="username" placeholder="أدخل اسم المستخدم">
+      </div>
+      <div class="form-group">
+        <label for="password">كلمة المرور</label>
+        <div class="password-input-wrapper">
+          <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="أدخل كلمة المرور">
+          <button type="button" id="password-toggle" aria-pressed="false" aria-label="إظهار كلمة المرور">
+            👁️
+          </button>
+        </div>
+      </div>
+      <p id="form-message" class="form-message" hidden></p>
+      <button type="submit" class="primary-button">تسجيل الدخول</button>
+    </form>
+  </div>
 </body>
 </html>

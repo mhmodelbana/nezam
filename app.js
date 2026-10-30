@@ -35,14 +35,11 @@ function initializeSessionLogout() {
       try {
         const { error } = await window.votaSupabase.auth.signOut();
         if (error) throw error;
+        window.location.assign(destination);
       } catch (error) {
         console.error("Unable to sign out from Supabase.", error);
         window.votaData.showError("تعذر تسجيل الخروج. حاول مرة أخرى.");
-        return;
       }
-      window.sessionStorage.removeItem("vota-travel.admin-session");
-      window.sessionStorage.removeItem("vota-travel.portal-session");
-      window.location.assign(destination);
     });
   }
 }
@@ -55,11 +52,6 @@ function initializeLogin() {
   const passwordToggle = document.querySelector("#password-toggle");
   const usernameInput = document.querySelector("#username");
   const formMessage = document.querySelector("#form-message");
-  const savedLoginError = window.sessionStorage.getItem("vota-travel.login-error");
-  if (savedLoginError) {
-    formMessage.textContent = savedLoginError;
-    window.sessionStorage.removeItem("vota-travel.login-error");
-  }
 
   passwordToggle.addEventListener("click", () => {
     const isPasswordHidden = passwordInput.type === "password";
@@ -100,15 +92,8 @@ function initializeLogin() {
         throw profileError || new Error("The authenticated account has no assigned role.");
       }
       if (profile.role === "admin" && profile.student_id === null) {
-        window.sessionStorage.setItem("vota-travel.admin-session", "active");
-        window.sessionStorage.removeItem("vota-travel.portal-session");
         window.location.assign("dashboard.html");
       } else if (profile.role === "student" && Number.isSafeInteger(profile.student_id)) {
-        window.sessionStorage.setItem(
-          "vota-travel.portal-session",
-          JSON.stringify({ studentId: profile.student_id })
-        );
-        window.sessionStorage.removeItem("vota-travel.admin-session");
         window.location.assign("portal.html");
       } else {
         await window.votaSupabase.auth.signOut();
@@ -187,20 +172,7 @@ function isTripSchedule(record) {
 }
 
 async function readTripSchedules() {
-  if (window.votaAPI) {
-    return await window.votaAPI.getTripSchedules();
-  }
-  // Fallback to localStorage for backward compatibility
-  const stored = window.localStorage.getItem(tripSchedulesKey);
-  if (stored === null) return [];
-  const schedules = JSON.parse(stored);
-  if (!Array.isArray(schedules) || !schedules.every(isTripSchedule)) {
-    throw new TypeError("Saved trip schedule data has an invalid format.");
-  }
-  if (new Set(schedules.map((schedule) => schedule.id)).size !== schedules.length) {
-    throw new TypeError("Saved trip schedule data contains duplicate IDs.");
-  }
-  return schedules;
+  return await window.votaAPI.getTripSchedules();
 }
 
 function formatTripTime(value) {
@@ -215,21 +187,10 @@ function formatTripTime(value) {
 
 async function isStudentEligibleForTrips(student, tripDate = localDateString()) {
   if (student.subscription !== "active" || student.archivedAt) return false;
-  
-  let subscriptions, terms;
-  if (window.votaAPI) {
-    subscriptions = await window.votaAPI.getSubscriptions();
-    terms = await window.votaAPI.getTerms();
-  } else {
-    subscriptions = JSON.parse(
-      window.localStorage.getItem("vota-travel.subscriptions.v1") || "[]"
-    );
-    terms = JSON.parse(window.localStorage.getItem("vota-travel.terms.v1") || "[]");
-  }
-  
-  if (!Array.isArray(subscriptions) || !Array.isArray(terms)) {
-    throw new TypeError("Saved subscription data has an invalid format.");
-  }
+
+  const subscriptions = await window.votaAPI.getSubscriptions();
+  const terms = await window.votaAPI.getTerms();
+
   const subscription = subscriptions.find((record) =>
     record.studentId === student.id && record.termId === student.termId
   );
@@ -312,19 +273,7 @@ function generateTemporaryPassword() {
 }
 
 async function readStudentRecords() {
-  if (window.votaAPI) {
-    return await window.votaAPI.getStudents();
-  }
-  // Fallback to localStorage for backward compatibility
-  const stored = window.localStorage.getItem(studentRecordsKey);
-  if (stored === null) return [];
-  const students = JSON.parse(stored);
-  if (!Array.isArray(students) || !students.every(
-    (student) => student && Number.isSafeInteger(student.id) && student.id > 0
-  )) {
-    throw new TypeError("Saved student data has an invalid format.");
-  }
-  return students;
+  return await window.votaAPI.getStudents();
 }
 
 function isTripRequest(record) {
@@ -364,20 +313,7 @@ function isTripRequest(record) {
 }
 
 async function readTripRequests() {
-  if (window.votaAPI) {
-    return await window.votaAPI.getTripRequests();
-  }
-  // Fallback to localStorage for backward compatibility
-  const stored = window.localStorage.getItem(tripRequestsKey);
-  if (stored === null) return [];
-  const records = JSON.parse(stored);
-  if (!Array.isArray(records) || !records.every(isTripRequest)) {
-    throw new TypeError("Saved trip request data has an invalid format.");
-  }
-  if (new Set(records.map((record) => record.id)).size !== records.length) {
-    throw new TypeError("Saved trip request data contains duplicate IDs.");
-  }
-  return records;
+  return await window.votaAPI.getTripRequests();
 }
 
 function initializeTripScheduleManager() {
@@ -392,7 +328,7 @@ function initializeTripScheduleManager() {
   const submitButton = document.querySelector("#save-trip-schedule");
   const cancelEditButton = document.querySelector("#cancel-trip-schedule-edit");
 
-  if (window.sessionStorage.getItem("vota-travel.admin-session") !== "active") {
+  if (window.votaData.role !== "admin") {
     accessError.textContent = "سجّل دخولك للإدارة لتعديل مواعيد الرحلات.";
     accessError.hidden = false;
     form.hidden = true;
@@ -481,36 +417,21 @@ function initializeTripScheduleManager() {
       }
 
       const current = schedules.find((schedule) => schedule.id === editingId);
-      
-      if (window.votaAPI) {
-        if (current) {
-          await window.votaAPI.updateTripSchedule(editingId, {
-            direction,
-            time,
-            active: current.active,
-          });
-        } else {
-          await window.votaAPI.createTripSchedule({
-            direction,
-            time,
-            active: true,
-          });
-        }
-      } else {
-        // Fallback to localStorage
-        const schedule = {
-          id: current?.id ||
-            schedules.reduce((largestId, item) => Math.max(largestId, item.id), 0) + 1,
+
+      if (current) {
+        await window.votaAPI.updateTripSchedule(editingId, {
           direction,
           time,
-          active: current?.active ?? true,
-        };
-        const updatedSchedules = current
-          ? schedules.map((item) => item.id === current.id ? schedule : item)
-          : [...schedules, schedule];
-        window.localStorage.setItem(tripSchedulesKey, JSON.stringify(updatedSchedules));
+          active: current.active,
+        });
+      } else {
+        await window.votaAPI.createTripSchedule({
+          direction,
+          time,
+          active: true,
+        });
       }
-      
+
       resetForm();
       render();
     } catch (saveError) {
@@ -542,23 +463,13 @@ function initializeTripScheduleManager() {
         return;
       }
       if (action === "delete" && !window.confirm("هل تريد حذف هذا الموعد؟")) return;
-      
-      if (window.votaAPI) {
-        if (action === "toggle") {
-          await window.votaAPI.toggleTripSchedule(scheduleId);
-        } else if (action === "delete") {
-          await window.votaAPI.deleteTripSchedule(scheduleId);
-        }
-      } else {
-        // Fallback to localStorage
-        const updatedSchedules = action === "toggle"
-          ? schedules.map((schedule) => schedule.id === scheduleId
-            ? { ...schedule, active: !schedule.active }
-            : schedule)
-          : schedules.filter((schedule) => schedule.id !== scheduleId);
-        window.localStorage.setItem(tripSchedulesKey, JSON.stringify(updatedSchedules));
+
+      if (action === "toggle") {
+        await window.votaAPI.toggleTripSchedule(scheduleId);
+      } else if (action === "delete") {
+        await window.votaAPI.deleteTripSchedule(scheduleId);
       }
-      
+
       if (Number(form.elements.scheduleId.value) === scheduleId) resetForm();
       render();
     } catch (updateError) {
@@ -568,9 +479,6 @@ function initializeTripScheduleManager() {
     }
   });
 
-  window.addEventListener("storage", (event) => {
-    if (event.key === tripSchedulesKey) render();
-  });
   render();
 }
 
@@ -594,7 +502,7 @@ function initializeTripAdmin() {
   let selectedDirection = "outbound";
   let selectedScheduleKey = "";
 
-  if (window.sessionStorage.getItem("vota-travel.admin-session") !== "active") {
+  if (window.votaData.role !== "admin") {
     error.textContent = "سجّل دخولك للإدارة لعرض مواعيد الرحلات.";
     error.hidden = false;
     scheduleList.hidden = true;
@@ -607,11 +515,11 @@ function initializeTripAdmin() {
     return request.pickup || student?.pickup || "منطقة غير محددة";
   }
 
-  function render() {
+  async function render() {
     try {
-      const students = readStudentRecords();
-      const requests = readTripRequests();
-      const schedules = readTripSchedules();
+      const students = await readStudentRecords();
+      const requests = await readTripRequests();
+      const schedules = await readTripSchedules();
       const studentById = new Map(students.map((student) => [student.id, student]));
       const selectedDate = dateInput.value;
       const dateRequests = requests.filter((request) => request.tripDate === selectedDate);
@@ -818,23 +726,21 @@ function initializeTripAdmin() {
     render();
     scheduleList.scrollIntoView({ behavior: "smooth", block: "start" });
   });
-  pickupInput.addEventListener("change", render);
-  searchInput.addEventListener("input", render);
-  studentRows.addEventListener("click", (event) => {
+  pickupInput.addEventListener("change", () => render());
+  searchInput.addEventListener("input", () => render());
+  studentRows.addEventListener("click", async (event) => {
     const button = event.target.closest("button[data-trip-id]");
     if (!button) return;
     const tripId = Number(button.dataset.tripId);
     const nextStatus = button.dataset.tripStatus;
     try {
-      const requests = readTripRequests();
+      const requests = await readTripRequests();
       const target = requests.find((request) => request.id === tripId);
       const validTransition = ["pending", "approved"].includes(target?.status) &&
         nextStatus === "cancelled";
       if (!validTransition) return;
-      const updatedRequests = requests.map((request) =>
-        request.id === tripId ? { ...request, status: nextStatus } : request
-      );
-      window.localStorage.setItem(tripRequestsKey, JSON.stringify(updatedRequests));
+
+      await window.votaAPI.updateTripRequest(tripId, { status: nextStatus });
       render();
     } catch (updateError) {
       console.error("Unable to cancel trip booking.", updateError);
@@ -843,9 +749,6 @@ function initializeTripAdmin() {
     }
   });
   document.querySelector("#print-trip-manifest").addEventListener("click", () => window.print());
-  window.addEventListener("storage", (event) => {
-    if ([tripRequestsKey, tripSchedulesKey, studentRecordsKey].includes(event.key)) render();
-  });
   render();
 }
 function initializeStudentPortal() {
@@ -859,18 +762,7 @@ function initializeStudentPortal() {
   const passwordError = document.querySelector("#portal-password-error");
   const sectionName = page.dataset.portalSection;
   let refreshTripAvailability = () => {};
-  let session;
-  try {
-    session = JSON.parse(
-      window.sessionStorage.getItem("vota-travel.portal-session") || "null"
-    );
-  } catch (error) {
-    console.error("Unable to read the student portal session.", error);
-    message.textContent = "تعذر التحقق من تسجيل الدخول. سجّل الدخول مرة أخرى.";
-    message.hidden = false;
-    return;
-  }
-  if (!session || !Number.isSafeInteger(session.studentId)) {
+  if (window.votaData.role !== "student" || !window.votaData.studentId) {
     message.textContent = "سجّل دخولك بحساب الطالب لعرض ملفك.";
     message.hidden = false;
     return;
@@ -878,16 +770,15 @@ function initializeStudentPortal() {
 
   let students;
   try {
-    students = readStudentRecords();
+    students = await readStudentRecords();
   } catch (error) {
     console.error("Unable to load the student portal profile.", error);
     message.textContent = "تعذر تحميل بيانات الحساب.";
     message.hidden = false;
     return;
   }
-  const student = students.find((record) => record.id === session.studentId);
+  const student = students.find((record) => record.id === window.votaData.studentId);
   if (!student || student.archivedAt) {
-    window.sessionStorage.removeItem("vota-travel.portal-session");
     message.textContent = "الحساب غير متاح. سجّل الدخول مرة أخرى.";
     message.hidden = false;
     return;
@@ -921,24 +812,19 @@ function initializeStudentPortal() {
     for (const [id, value] of Object.entries(values)) setText(id, value);
   }
 
-  function updateSubscription() {
-    let subscriptionRecords;
+  async function updateSubscription() {
+    let subscriptions;
     try {
-      subscriptionRecords = JSON.parse(
-        window.localStorage.getItem("vota-travel.subscriptions.v1") || "[]"
+      const allSubscriptions = await window.votaAPI.getSubscriptions();
+      subscriptions = allSubscriptions.filter(
+        (record) => record.studentId === student.id
       );
-      if (!Array.isArray(subscriptionRecords)) {
-        throw new TypeError("Saved subscription data has an invalid format.");
-      }
     } catch (error) {
       console.error("Unable to load student subscription details.", error);
       message.textContent = "تعذر تحميل بيانات الاشتراك.";
       message.hidden = false;
       return;
     }
-    const subscriptions = subscriptionRecords.filter(
-      (record) => record.studentId === student.id
-    );
     const currentSubscription = subscriptions.find(
       (record) => record.termId === student.termId
     );
@@ -981,7 +867,7 @@ function initializeStudentPortal() {
     if (empty) empty.hidden = paymentCount > 0;
   }
 
-  function updateTripPage() {
+  async function updateTripPage() {
     setText("trip-pickup-location", student.pickup);
     const cards = document.querySelector("#trip-schedule-cards");
     if (!cards) return;
@@ -1005,17 +891,17 @@ function initializeStudentPortal() {
       successMessage.hidden = true;
     }
 
-    function updateAvailableTimes() {
+    async function updateAvailableTimes() {
       try {
         const schedules = selectedDirection
-          ? readTripSchedules()
+          ? (await readTripSchedules())
             .filter((schedule) => schedule.active)
             .filter((schedule) => schedule.direction === selectedDirection)
             .sort((first, second) => first.time.localeCompare(second.time))
           : [];
-        const requests = readTripRequests();
+        const requests = await readTripRequests();
         const tripDate = localDateString();
-        const eligible = isStudentEligibleForTrips(student, tripDate);
+        const eligible = await isStudentEligibleForTrips(student, tripDate);
         const activeRequests = requests.filter((request) =>
           request.studentId === student.id &&
           request.tripDate === tripDate &&
@@ -1114,7 +1000,8 @@ function initializeStudentPortal() {
     async function bookSchedule(scheduleId) {
       try {
         const tripDate = localDateString();
-        const schedule = readTripSchedules().find((item) =>
+        const schedules = await readTripSchedules();
+        const schedule = schedules.find((item) =>
           item.id === scheduleId && item.active && item.direction === selectedDirection
         );
         if (!schedule) {
@@ -1122,12 +1009,12 @@ function initializeStudentPortal() {
           updateAvailableTimes();
           return;
         }
-        if (!isStudentEligibleForTrips(student, tripDate)) {
+        if (!(await isStudentEligibleForTrips(student, tripDate))) {
           showBookingError("التسجيل متاح للطلاب النشطين خلال فترة اشتراكهم فقط.");
           updateAvailableTimes();
           return;
         }
-        const requests = readTripRequests();
+        const requests = await readTripRequests();
         const directionRegistration = requests.find((request) =>
           request.studentId === student.id &&
           request.tripDate === tripDate &&
@@ -1157,7 +1044,7 @@ function initializeStudentPortal() {
 
     async function cancelTrip(requestId) {
       try {
-        const requests = readTripRequests();
+        const requests = await readTripRequests();
         const target = requests.find((request) =>
           request.id === requestId &&
           request.studentId === student.id &&
@@ -1235,43 +1122,13 @@ function initializeStudentPortal() {
       passwordError.textContent = "تعذر حفظ كلمة المرور. حاول مرة أخرى.";
     }
   });
-
-  window.addEventListener("storage", (event) => {
-    if (event.key === tripRequestsKey && sectionName === "trips") refreshTripAvailability();
-    if (event.key === tripSchedulesKey && sectionName === "trips") refreshTripAvailability();
-    if (event.key === "vota-travel.subscriptions.v1" && sectionName === "subscription") {
-      updateSubscription();
-    }
-    if (event.key === "vota-travel.subscriptions.v1" && sectionName === "trips") {
-      refreshTripAvailability();
-    }
-    if (event.key === studentRecordsKey) {
-      try {
-        const updatedStudent = readStudentRecords().find((record) => record.id === student.id);
-        if (!updatedStudent || updatedStudent.archivedAt) {
-          window.sessionStorage.removeItem("vota-travel.portal-session");
-          window.location.assign("lojin.html");
-          return;
-        }
-        Object.assign(student, updatedStudent);
-        if (sectionName === "home") updateHome();
-        if (sectionName === "personal") updatePersonal();
-        if (sectionName === "trips") {
-          setText("trip-pickup-location", student.pickup);
-          refreshTripAvailability();
-        }
-      } catch (error) {
-        console.error("Unable to refresh student portal data.", error);
-      }
-    }
-  });
 }
 
 function initializeStudentFile() {
   const profile = document.querySelector("#student-profile");
   if (!profile) return;
   const message = document.querySelector("#student-profile-message");
-  if (window.sessionStorage.getItem("vota-travel.admin-session") !== "active") {
+  if (window.votaData.role !== "admin") {
     message.textContent = "سجّل دخولك للإدارة لعرض ملف الطالب.";
     message.hidden = false;
     return;
@@ -1285,28 +1142,20 @@ function initializeStudentFile() {
   }
 
   try {
-    const students = readStudentRecords();
+    const students = await readStudentRecords();
     const student = students.find((record) => record.id === studentId);
     if (!student) {
       message.textContent = "لم يتم العثور على الطالب.";
       message.hidden = false;
       return;
     }
-    const subscriptions = JSON.parse(
-      window.localStorage.getItem("vota-travel.subscriptions.v1") || "[]"
-    );
-    const terms = JSON.parse(window.localStorage.getItem("vota-travel.terms.v1") || "[]");
-    if (!Array.isArray(subscriptions)) {
-      throw new TypeError("Saved subscription data has an invalid format.");
-    }
-    if (!Array.isArray(terms)) {
-      throw new TypeError("Saved term data has an invalid format.");
-    }
+    const subscriptions = await window.votaAPI.getSubscriptions();
+    const terms = await window.votaAPI.getTerms();
 
     const studentSubscriptions = subscriptions.filter(
       (record) => record.studentId === student.id
     );
-    const tripRequests = readTripRequests()
+    const tripRequests = (await readTripRequests())
       .filter((record) => record.studentId === student.id)
       .sort((first, second) =>
         `${second.tripDate}T${second.tripTime}`.localeCompare(`${first.tripDate}T${first.tripTime}`)
@@ -1486,25 +1335,21 @@ function initializeStudentFile() {
     tripError.hidden = true;
   }
 
-  document.querySelector("#profile-trip-requests").addEventListener("click", (event) => {
+  document.querySelector("#profile-trip-requests").addEventListener("click", async (event) => {
     const button = event.target.closest("button[data-trip-id]");
     if (!button) return;
     try {
-      const requests = readTripRequests();
+      const requests = await readTripRequests();
       const targetId = Number(button.dataset.tripId);
       const target = requests.find(
         (request) => request.id === targetId && request.studentId === studentId
       );
       const nextStatus = button.dataset.tripStatus;
       if (!target || target.status !== "pending" ||
-          !["approved", "rejected"].includes(nextStatus)) return;
-      const updatedRequests = requests.map((request) =>
-        request.id === targetId
-          ? { ...request, status: nextStatus }
-          : request
-      );
-      window.localStorage.setItem(tripRequestsKey, JSON.stringify(updatedRequests));
-      renderAdminTripRequests(updatedRequests.filter((request) => request.studentId === studentId));
+        !["approved", "rejected"].includes(nextStatus)) return;
+
+      await window.votaAPI.updateTripRequest(targetId, { status: nextStatus });
+      renderAdminTripRequests((await readTripRequests()).filter((request) => request.studentId === studentId));
     } catch (error) {
       console.error("Unable to update trip request status.", error);
       const tripError = document.querySelector("#profile-trip-error");
@@ -1699,29 +1544,11 @@ function initializeStudents() {
     );
   }
 
-  function readStoredArray(key, validator, label) {
-    const value = window.localStorage.getItem(key);
-    if (value === null) return [];
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed) || !parsed.every(validator)) {
-      throw new TypeError(`Saved ${label} data has an invalid format.`);
-    }
-    const ids = parsed.map((record) => record.id);
-    if (new Set(ids).size !== ids.length) {
-      throw new TypeError(`Saved ${label} data contains duplicate IDs.`);
-    }
-    return parsed;
-  }
-
-  function loadStudents() {
+  async function loadStudents() {
     try {
-      students = readStoredArray(storageKeys.students, isStudentRecord, "student");
-      terms = readStoredArray(storageKeys.terms, isTermRecord, "term");
-      subscriptions = readStoredArray(
-        storageKeys.subscriptions,
-        isSubscriptionRecord,
-        "subscription"
-      );
+      students = await window.votaAPI.getStudents();
+      terms = await window.votaAPI.getTerms();
+      subscriptions = await window.votaAPI.getSubscriptions();
       nextStudentId = students.reduce(
         (largestId, student) => Math.max(largestId, student.id),
         0
@@ -1735,52 +1562,50 @@ function initializeStudents() {
     }
   }
 
-  function saveRegistration(updatedStudents, updatedSubscriptions) {
-    let oldStudents;
-    let oldSubscriptions;
+  async function saveRegistration(updatedStudents, updatedSubscriptions) {
     try {
-      oldStudents = window.localStorage.getItem(storageKeys.students);
-      oldSubscriptions = window.localStorage.getItem(storageKeys.subscriptions);
-      window.localStorage.setItem(storageKeys.students, JSON.stringify(updatedStudents));
-      window.localStorage.setItem(
-        storageKeys.subscriptions,
-        JSON.stringify(updatedSubscriptions)
-      );
+      // Save students and subscriptions to Supabase
+      for (const student of updatedStudents) {
+        const existing = students.find(s => s.id === student.id);
+        if (existing) {
+          await window.votaAPI.updateStudent(student.id, student);
+        } else {
+          await window.votaAPI.createStudent(student);
+        }
+      }
+      for (const subscription of updatedSubscriptions) {
+        const existing = subscriptions.find(s => s.id === subscription.id);
+        if (existing) {
+          await window.votaAPI.updateSubscription(subscription.id, subscription);
+        } else {
+          await window.votaAPI.createSubscription(subscription);
+        }
+      }
+      students = updatedStudents;
+      subscriptions = updatedSubscriptions;
       storageMessage.textContent = "";
       storageMessage.hidden = true;
       return true;
     } catch (error) {
       console.error("Unable to save student registration and subscription.", error);
-      if (oldStudents === undefined || oldSubscriptions === undefined) {
-        storageMessage.textContent = "تعذر حفظ بيانات الطالب والاشتراك. حاول مرة أخرى.";
-        storageMessage.hidden = false;
-        return false;
-      }
-      try {
-        if (oldStudents === null) window.localStorage.removeItem(storageKeys.students);
-        else window.localStorage.setItem(storageKeys.students, oldStudents);
-        if (oldSubscriptions === null) {
-          window.localStorage.removeItem(storageKeys.subscriptions);
-        } else {
-          window.localStorage.setItem(storageKeys.subscriptions, oldSubscriptions);
-        }
-      } catch (rollbackError) {
-        console.error("Unable to roll back partial student registration.", rollbackError);
-        showStorageError("تعذر حفظ التسجيل بالكامل. راجع بيانات الطلاب والاشتراكات.", rollbackError);
-        return false;
-      }
       storageMessage.textContent = "تعذر حفظ بيانات الطالب والاشتراك. حاول مرة أخرى.";
       storageMessage.hidden = false;
       return false;
     }
   }
 
-  function saveStudents(updatedStudents) {
+  async function saveStudents(updatedStudents) {
     try {
-      window.localStorage.setItem(
-        storageKeys.students,
-        JSON.stringify(updatedStudents)
-      );
+      // Save students to Supabase
+      for (const student of updatedStudents) {
+        const existing = students.find(s => s.id === student.id);
+        if (existing) {
+          await window.votaAPI.updateStudent(student.id, student);
+        } else {
+          await window.votaAPI.createStudent(student);
+        }
+      }
+      students = updatedStudents;
       storageMessage.textContent = "";
       storageMessage.hidden = true;
       return true;
@@ -2316,7 +2141,6 @@ function initializeStudents() {
       throw new Error("Unable to save the new student portal password.");
     }
     students = updatedStudents;
-    await window.votaData.flush();
     renderStudents();
     showCredentials(student.id, temporaryPassword);
   }
@@ -2738,7 +2562,6 @@ function initializeStudents() {
     students = updatedStudents;
     subscriptions = updatedSubscriptions;
     try {
-      await window.votaData.flush();
       const account = await window.votaData.manageStudentAuth(
         "create",
         newStudent.id,
@@ -2751,7 +2574,6 @@ function initializeStudents() {
       if (!saveStudents(students)) {
         throw new Error("Student Auth account was created but the profile link could not be saved.");
       }
-      await window.votaData.flush();
       closeStudentDialog();
       showCredentials(newStudent.id, temporaryPassword);
       renderStudents();
@@ -2855,7 +2677,8 @@ function initializeStudents() {
     }
   });
 
-  loadStudents();
+  await loadStudents();
+  updateTermOptions();
   renderStudents();
   const requestedEditId = Number(new URLSearchParams(window.location.search).get("edit"));
   const requestedEditStudent = students.find((student) => student.id === requestedEditId);
@@ -2896,23 +2719,28 @@ function initializeSettings() {
     termForm.querySelector('button[type="submit"]').disabled = true;
   }
 
-  function readRecords(key, validator, label) {
-    const stored = window.localStorage.getItem(key);
-    if (stored === null) return [];
-    const records = JSON.parse(stored);
-    if (!Array.isArray(records) || !records.every(validator)) {
-      throw new TypeError(`Saved ${label} data has an invalid format.`);
+  async function readRecords(key, validator, label) {
+    if (key === termsKey) {
+      return await window.votaAPI.getTerms();
     }
-    const ids = records.map((record) => record.id);
-    if (new Set(ids).size !== ids.length) {
-      throw new TypeError(`Saved ${label} data contains duplicate IDs.`);
+    if (key === subscriptionsKey) {
+      return await window.votaAPI.getSubscriptions();
     }
-    return records;
+    throw new Error(`Unknown storage key: ${key}`);
   }
 
-  function saveTerms(updatedTerms) {
+  async function saveTerms(updatedTerms) {
     try {
-      window.localStorage.setItem(termsKey, JSON.stringify(updatedTerms));
+      // Save terms to Supabase
+      for (const term of updatedTerms) {
+        const existing = terms.find(t => t.id === term.id);
+        if (existing) {
+          await window.votaAPI.updateTerm(term.id, term);
+        } else {
+          await window.votaAPI.createTerm(term);
+        }
+      }
+      terms = updatedTerms;
       storageError.textContent = "";
       storageError.hidden = true;
       return true;
@@ -2924,29 +2752,31 @@ function initializeSettings() {
     }
   }
 
-  function saveTermSchedule(updatedTerms, updatedSubscriptions) {
-    let previousTerms;
-    let previousSubscriptions;
+  async function saveTermSchedule(updatedTerms, updatedSubscriptions) {
     try {
-      previousTerms = window.localStorage.getItem(termsKey);
-      previousSubscriptions = window.localStorage.getItem(subscriptionsKey);
-      window.localStorage.setItem(termsKey, JSON.stringify(updatedTerms));
-      window.localStorage.setItem(subscriptionsKey, JSON.stringify(updatedSubscriptions));
+      for (const term of updatedTerms) {
+        const existing = terms.find(t => t.id === term.id);
+        if (existing) {
+          await window.votaAPI.updateTerm(term.id, term);
+        } else {
+          await window.votaAPI.createTerm(term);
+        }
+      }
+      for (const subscription of updatedSubscriptions) {
+        const existing = subscriptions.find(s => s.id === subscription.id);
+        if (existing) {
+          await window.votaAPI.updateSubscription(subscription.id, subscription);
+        } else {
+          await window.votaAPI.createSubscription(subscription);
+        }
+      }
+      terms = updatedTerms;
+      subscriptions = updatedSubscriptions;
       storageError.textContent = "";
       storageError.hidden = true;
       return true;
     } catch (error) {
       console.error("Unable to save term schedule.", error);
-      if (previousTerms !== undefined && previousSubscriptions !== undefined) {
-        try {
-          if (previousTerms === null) window.localStorage.removeItem(termsKey);
-          else window.localStorage.setItem(termsKey, previousTerms);
-          if (previousSubscriptions === null) window.localStorage.removeItem(subscriptionsKey);
-          else window.localStorage.setItem(subscriptionsKey, previousSubscriptions);
-        } catch (rollbackError) {
-          console.error("Unable to roll back term schedule changes.", rollbackError);
-        }
-      }
       storageError.textContent = "تعذر حفظ مواعيد الترم والاشتراكات المرتبطة به.";
       storageError.hidden = false;
       return false;
@@ -3111,7 +2941,7 @@ function initializeSettings() {
   });
 
   try {
-    terms = readRecords(
+    terms = await readRecords(
       termsKey,
       (term) => term && Number.isSafeInteger(term.id) && term.id > 0 &&
         typeof term.name === "string" && typeof term.academicYear === "string" &&
@@ -3120,7 +2950,7 @@ function initializeSettings() {
         (term.endDate === undefined || isValidDateOnly(term.endDate)),
       "term"
     );
-    subscriptions = readRecords(
+    subscriptions = await readRecords(
       subscriptionsKey,
       (subscription) => subscription && Number.isSafeInteger(subscription.id) &&
         Number.isSafeInteger(subscription.termId),
@@ -3177,38 +3007,26 @@ function initializeSubscriptions() {
     storageReady = false;
   }
 
-  function persistPayment(updatedSubscriptions, studentId) {
-    let previousSubscriptions;
-    let previousStudents;
+  async function persistPayment(updatedSubscriptions, studentId) {
     try {
-      previousSubscriptions = window.localStorage.getItem(storageKey);
-      previousStudents = window.localStorage.getItem(studentKey);
-      const currentStudents = readStudentRecords();
-      if (!currentStudents.some((student) => student.id === studentId)) {
+      for (const subscription of updatedSubscriptions) {
+        await window.votaAPI.updateSubscription(subscription.id, subscription);
+      }
+      const currentStudents = await window.votaAPI.getStudents();
+      const student = currentStudents.find(s => s.id === studentId);
+      if (!student) {
         throw new TypeError("Payment student record was not found.");
       }
-      const updatedStudents = currentStudents.map((student) =>
-        student.id === studentId ? { ...student, updatedAt: new Date().toISOString() } : student
-      );
-      window.localStorage.setItem(storageKey, JSON.stringify(updatedSubscriptions));
-      window.localStorage.setItem(studentKey, JSON.stringify(updatedStudents));
+      await window.votaAPI.updateStudent(studentId, {
+        ...student,
+        updatedAt: new Date().toISOString()
+      });
+      subscriptions = updatedSubscriptions;
       storageError.textContent = "";
       storageError.hidden = true;
       return true;
     } catch (error) {
       console.error("Unable to save payment and student update.", error);
-      try {
-        if (previousSubscriptions !== undefined) {
-          if (previousSubscriptions === null) window.localStorage.removeItem(storageKey);
-          else window.localStorage.setItem(storageKey, previousSubscriptions);
-        }
-        if (previousStudents !== undefined) {
-          if (previousStudents === null) window.localStorage.removeItem(studentKey);
-          else window.localStorage.setItem(studentKey, previousStudents);
-        }
-      } catch (rollbackError) {
-        console.error("Unable to roll back payment changes.", rollbackError);
-      }
       storageError.textContent = "تعذر حفظ الدفعة وتحديث ملف الطالب.";
       storageError.hidden = false;
       return false;
@@ -3355,7 +3173,7 @@ function initializeSubscriptions() {
     paymentError.textContent = "";
   });
 
-  paymentForm.addEventListener("submit", (event) => {
+  paymentForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     paymentError.textContent = "";
     if (!storageReady || !paymentForm.reportValidity()) return;
@@ -3388,7 +3206,7 @@ function initializeSubscriptions() {
           }
         : item
     );
-    if (!persistPayment(updatedSubscriptions, subscription.studentId)) {
+    if (!(await persistPayment(updatedSubscriptions, subscription.studentId))) {
       paymentError.textContent = "لم يتم حفظ الدفعة. حاول مرة أخرى.";
       return;
     }
@@ -3403,26 +3221,7 @@ function initializeSubscriptions() {
   });
 
   try {
-    const stored = window.localStorage.getItem(storageKey);
-    if (stored !== null) {
-      const parsed = JSON.parse(stored);
-      const valid = Array.isArray(parsed) && parsed.every((item) =>
-        item && Number.isSafeInteger(item.id) && item.id > 0 &&
-        typeof item.studentName === "string" && typeof item.studentPhone === "string" &&
-        typeof item.termName === "string" && typeof item.academicYear === "string" &&
-        Number.isSafeInteger(item.priceCents) && item.priceCents > 0 &&
-        Array.isArray(item.payments) && item.payments.every((payment) =>
-          payment && Number.isSafeInteger(payment.amountCents) && payment.amountCents > 0 &&
-          Object.hasOwn(methodLabels, payment.method) &&
-          typeof payment.paidAt === "string" &&
-          (payment.receiptNumber === undefined || typeof payment.receiptNumber === "string")
-        ) && item.payments.reduce((sum, payment) => sum + payment.amountCents, 0) <= item.priceCents
-      );
-      if (!valid || new Set(parsed.map((item) => item.id)).size !== parsed.length) {
-        throw new TypeError("Saved subscription data has an invalid format.");
-      }
-      subscriptions = parsed;
-    }
+    subscriptions = await window.votaAPI.getSubscriptions();
   } catch (error) {
     showStorageError("تعذر تحميل الاشتراكات. لم يتم تعديلها.", error);
   }
@@ -3436,7 +3235,15 @@ async function initializeApplication() {
     initializeDateTime();
     initializeSessionLogout();
     initializeLogin();
-    if (!shouldInitialize) return;
+    if (!shouldInitialize) {
+      // Redirect to login if on protected pages
+      const currentPage = window.location.pathname.split('/').pop();
+      const protectedPages = ['dashboard.html', 'students.html', 'settings.html', 'subscriptions.html', 'trips.html', 'portal.html', 'portal-personal.html', 'portal-subscription.html', 'portal-trips.html', 'student.html'];
+      if (protectedPages.includes(currentPage)) {
+        window.location.replace('index.html');
+      }
+      return;
+    }
     initializeStudents();
     initializeSettings();
     initializeSubscriptions();

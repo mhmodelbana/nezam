@@ -61,22 +61,34 @@
   }
 
   async function initialize() {
-    // Authentication disabled - always return true
-    window.sessionStorage.setItem("vota-travel.admin-session", "active");
-    window.sessionStorage.removeItem("vota-travel.portal-session");
-    currentRole = "admin";
-    currentProfile = { role: "admin", student_id: null };
+    const { data: { session }, error } = await client.auth.getSession();
+    if (error) throw error;
+
+    if (!session) {
+      currentRole = null;
+      currentProfile = null;
+      currentUserId = null;
+      return false;
+    }
+
+    currentUserId = session.user.id;
+    currentProfile = await loadProfile(currentUserId);
+    currentRole = currentProfile.role;
+
     return true;
   }
 
   async function refreshStudentState() {
-    const session = JSON.parse(window.sessionStorage.getItem("vota-travel.portal-session") || "null");
-    if (!session || !session.studentId) throw new Error("No active student session");
+    if (!currentProfile || currentProfile.role !== "student" || !currentProfile.student_id) {
+      throw new Error("No active student session");
+    }
+
+    const studentId = currentProfile.student_id;
 
     const { data: student, error: studentError } = await client
       .from("students")
       .select("*")
-      .eq("id", session.studentId)
+      .eq("id", studentId)
       .single();
     if (studentError) throw studentError;
     if (!student || student.archived_at) throw new Error("Student record is unavailable");
@@ -84,13 +96,13 @@
     const { data: subscriptions, error: subError } = await client
       .from("subscriptions")
       .select("*, terms(*)")
-      .eq("student_id", session.studentId);
+      .eq("student_id", studentId);
     if (subError) throw subError;
 
     const { data: requests, error: reqError } = await client
       .from("trip_requests")
       .select("*")
-      .eq("student_id", session.studentId);
+      .eq("student_id", studentId);
     if (reqError) throw reqError;
 
     const { data: schedules, error: schedError } = await client
@@ -103,21 +115,24 @@
   }
 
   async function updateStudentTrip(action, scheduleId, tripDate, requestId) {
-    const session = JSON.parse(window.sessionStorage.getItem("vota-travel.portal-session") || "null");
-    if (!session || !session.studentId) throw new Error("No active student session");
+    if (!currentProfile || currentProfile.role !== "student" || !currentProfile.student_id) {
+      throw new Error("No active student session");
+    }
+
+    const studentId = currentProfile.student_id;
 
     if (action === "cancel") {
       const { error } = await client
         .from("trip_requests")
         .update({ status: "cancelled" })
         .eq("id", requestId)
-        .eq("student_id", session.studentId);
+        .eq("student_id", studentId);
       if (error) throw error;
     } else if (action === "book") {
       const { data: student, error: studentError } = await client
         .from("students")
         .select("*, subscriptions(*, terms(*))")
-        .eq("id", session.studentId)
+        .eq("id", studentId)
         .single();
       if (studentError) throw studentError;
 
@@ -136,7 +151,7 @@
       const { data: existing, error: existingError } = await client
         .from("trip_requests")
         .select("*")
-        .eq("student_id", session.studentId)
+        .eq("student_id", studentId)
         .eq("trip_date", tripDate)
         .eq("trip_type", schedule.direction)
         .in("status", ["pending", "approved"])
@@ -147,7 +162,7 @@
       const { error: insertError } = await client
         .from("trip_requests")
         .insert({
-          student_id: session.studentId,
+          student_id: studentId,
           student_name: student.name,
           trip_type: schedule.direction,
           trip_date: tripDate,
@@ -164,7 +179,7 @@
     const { data: requests, error } = await client
       .from("trip_requests")
       .select("*")
-      .eq("student_id", session.studentId);
+      .eq("student_id", studentId);
     if (error) throw error;
     return requests;
   }
@@ -173,13 +188,14 @@
     const { error: passwordError } = await client.auth.updateUser({ password });
     if (passwordError) throw passwordError;
 
-    const session = JSON.parse(window.sessionStorage.getItem("vota-travel.portal-session") || "null");
-    if (!session || !session.studentId) throw new Error("No active student session");
+    if (!currentProfile || currentProfile.role !== "student" || !currentProfile.student_id) {
+      throw new Error("No active student session");
+    }
 
     const { error: profileError } = await client
       .from("students")
       .update({ must_change_password: false })
-      .eq("id", session.studentId);
+      .eq("id", currentProfile.student_id);
     if (profileError) throw profileError;
 
     return refreshStudentState();
@@ -205,6 +221,9 @@
     },
     get role() {
       return currentRole;
+    },
+    get studentId() {
+      return currentProfile?.student_id;
     },
     showError(message) {
       showSyncMessage(message, true);
