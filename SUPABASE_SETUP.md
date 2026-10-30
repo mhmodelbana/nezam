@@ -40,6 +40,12 @@ Deploy the Edge Function from the repository root using the Supabase CLI:
 supabase functions deploy manage-student-auth
 ```
 
+The checked-in [`supabase/config.toml`](./supabase/config.toml) disables the
+gateway's automatic JWT check for this function so browsers can complete the
+unauthenticated CORS `OPTIONS` preflight. The function itself still requires a
+valid bearer token and confirms the caller's administrator role before doing
+anything. Redeploy after changing this setting.
+
 Supabase provides the function URL and service-role key as server environment
 variables. The service-role key is used only inside the function; never put it
 in a browser file. The function verifies the caller's administrator role
