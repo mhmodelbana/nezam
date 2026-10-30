@@ -3,7 +3,7 @@
 
 -- Insert the administrator into profiles table
 insert into public.profiles (user_id, role, student_id)
-values ('b281fef5-2814-4c4b-86ed-e7b316e4962c', 'admin', null)
+values ('331845bd-28a1-4d15-a229-314032e740b5', 'admin', null)
 on conflict (user_id) do update set 
   role = 'admin',
   student_id = null;
