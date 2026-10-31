@@ -110,6 +110,7 @@ Deno.serve(async (request: Request) => {
 
   const studentCode = `VT-${String(studentId).padStart(4, "0")}`;
   const email = `student-${Number(studentId)}@students.votatravel.com`;
+  let createdUser = false;
   if (userId) {
     const { error } = await serviceClient.auth.admin.updateUserById(userId, {
       email,
@@ -134,15 +135,31 @@ Deno.serve(async (request: Request) => {
       return respond(500, { error: "The student account could not be created." });
     }
     userId = data.user.id;
+    createdUser = true;
   }
 
-  const { error: linkError } = await serviceClient.from("profiles").upsert({
-    user_id: userId,
-    role: "student",
-    student_id: Number(studentId),
-  }, { onConflict: "user_id" });
-  if (linkError) {
+  const { data: linkedProfile, error: linkError } = await serviceClient
+    .from("profiles")
+    .upsert({
+      user_id: userId,
+      role: "student",
+      student_id: Number(studentId),
+    }, { onConflict: "user_id" })
+    .select("user_id, role, student_id")
+    .single();
+  if (
+    linkError ||
+    linkedProfile?.user_id !== userId ||
+    linkedProfile?.role !== "student" ||
+    Number(linkedProfile?.student_id) !== Number(studentId)
+  ) {
     console.error("Unable to link the student's Auth account to a profile.", linkError);
+    if (createdUser) {
+      const { error: cleanupError } = await serviceClient.auth.admin.deleteUser(userId);
+      if (cleanupError) {
+        console.error("Unable to remove the unlinked student Auth account.", cleanupError);
+      }
+    }
     return respond(500, { error: "The student account was created but could not be linked." });
   }
 

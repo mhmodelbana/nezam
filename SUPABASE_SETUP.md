@@ -42,6 +42,20 @@ supabase secrets set SUPABASE_SECRET_KEY=YOUR_ROTATED_SECRET_KEY SUPABASE_PUBLIS
 أو استخدام متغير Supabase الافتراضي `SUPABASE_ANON_KEY`. تتحقق الوظيفة من جلسة
 المتصل وصلاحية الإدارة قبل إنشاء حساب الطالب أو إعادة تعيينه أو حذفه.
 
+بعد إنشاء حساب طالب، تحقق من ربطه في **SQL Editor** باستبدال `123` برقم
+الطالب:
+
+```sql
+select s.id as student_id, s.name, p.user_id, p.role, u.email
+from public.students s
+left join public.profiles p on p.student_id = s.id
+left join auth.users u on u.id = p.user_id
+where s.id = 123;
+```
+
+يجب أن يظهر `user_id` ودور `student` وبريد بصيغة
+`student-123@students.votatravel.com`.
+
 ## 4. فتح النظام
 
 انشر ملفات المشروع على استضافة HTTPS ثم سجّل الدخول ببريد الإدارة. يُسجّل
