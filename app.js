@@ -236,13 +236,14 @@ function formatTripTime(value) {
 async function isStudentEligibleForTrips(student, tripDate = localDateString()) {
   if (student.subscription !== "active" || student.archivedAt) return false;
 
-  const subscriptions = await window.votaAPI.getSubscriptions();
-  const terms = await window.votaAPI.getTerms();
+  const [subscriptions, term] = await Promise.all([
+    window.votaAPI.getStudentSubscriptions(student.id),
+    window.votaAPI.getTerm(student.termId),
+  ]);
 
   const subscription = subscriptions.find((record) =>
     record.studentId === student.id && record.termId === student.termId
   );
-  const term = terms.find((record) => record.id === student.termId);
   const startDate = subscription?.startDate || term?.startDate;
   const endDate = subscription?.endDate || term?.endDate;
   return Boolean(
@@ -1346,10 +1347,7 @@ async function initializeStudentPortal() {
   async function updateSubscription() {
     let subscriptions;
     try {
-      const allSubscriptions = await window.votaAPI.getSubscriptions();
-      subscriptions = allSubscriptions.filter(
-        (record) => record.studentId === student.id
-      );
+      subscriptions = await window.votaAPI.getStudentSubscriptions(student.id);
     } catch (error) {
       console.error("Unable to load student subscription details.", error);
       message.textContent = "تعذر تحميل بيانات الاشتراك.";
@@ -1441,15 +1439,17 @@ async function initializeStudentPortal() {
       cards.hidden = false;
       empty.hidden = true;
       try {
+        const tripDate = localDateString();
+        const [availableSchedules, requests, eligible] = await Promise.all([
+          readTripSchedules(),
+          window.votaAPI.getStudentTripRequests(student.id),
+          isStudentEligibleForTrips(student, tripDate),
+        ]);
         const schedules = selectedDirection
-          ? (await readTripSchedules())
-            .filter((schedule) => schedule.active)
-            .filter((schedule) => schedule.direction === selectedDirection)
+          ? availableSchedules
+            .filter((schedule) => schedule.active && schedule.direction === selectedDirection)
             .sort((first, second) => first.time.localeCompare(second.time))
           : [];
-        const requests = await readTripRequests();
-        const tripDate = localDateString();
-        const eligible = await isStudentEligibleForTrips(student, tripDate);
         const activeRequests = requests.filter((request) =>
           request.studentId === student.id &&
           request.tripDate === tripDate &&
@@ -1569,12 +1569,15 @@ async function initializeStudentPortal() {
           updateAvailableTimes();
           return;
         }
-        if (!(await isStudentEligibleForTrips(student, tripDate))) {
+        const [eligible, requests] = await Promise.all([
+          isStudentEligibleForTrips(student, tripDate),
+          window.votaAPI.getStudentTripRequests(student.id),
+        ]);
+        if (!eligible) {
           showBookingError("التسجيل متاح للطلاب النشطين خلال فترة اشتراكهم فقط.");
           updateAvailableTimes();
           return;
         }
-        const requests = await readTripRequests();
         const directionRegistration = requests.find((request) =>
           request.studentId === student.id &&
           request.tripDate === tripDate &&
@@ -1905,15 +1908,16 @@ async function initializeStudentFile() {
   }
 
   try {
-    const students = await readStudentRecords();
-    const student = students.find((record) => record.id === studentId);
+    const student = await window.votaAPI.getStudent(studentId);
     if (!student) {
       message.textContent = "لم يتم العثور على الطالب.";
       message.hidden = false;
       return;
     }
-    const subscriptions = await window.votaAPI.getSubscriptions();
-    const terms = await window.votaAPI.getTerms();
+    const [subscriptions, currentTerm] = await Promise.all([
+      window.votaAPI.getStudentSubscriptionsForAdmin(student.id),
+      window.votaAPI.getTerm(student.termId),
+    ]);
 
     const studentSubscriptions = subscriptions.filter(
       (record) => record.studentId === student.id
@@ -1929,7 +1933,6 @@ async function initializeStudentFile() {
     const currentSubscription = studentSubscriptions.find(
       (record) => record.termId === student.termId
     );
-    const currentTerm = terms.find((record) => record.id === student.termId);
     const effectiveStudentStatus = ["active", "pending"].includes(student.subscription) &&
       currentSubscription?.endDate && currentSubscription.endDate < localDateString()
       ? "expired"
@@ -2048,8 +2051,8 @@ async function initializeStudentFile() {
       const row = document.createElement("tr");
       const cells = [
         `${subscription.termName} — ${subscription.academicYear}`,
-        formatLocalDate(subscription.startDate || terms.find((term) => term.id === subscription.termId)?.startDate),
-        formatLocalDate(subscription.endDate || terms.find((term) => term.id === subscription.termId)?.endDate),
+        formatLocalDate(subscription.startDate),
+        formatLocalDate(subscription.endDate),
         formatMoney(subscription.priceCents),
         formatMoney(paid),
         formatMoney(remaining),
@@ -2424,9 +2427,11 @@ async function initializeStudents() {
 
   async function loadStudents() {
     try {
-      students = await window.votaAPI.getStudents();
-      terms = await window.votaAPI.getTerms();
-      subscriptions = await window.votaAPI.getSubscriptions();
+      [students, terms, subscriptions] = await Promise.all([
+        window.votaAPI.getStudents(),
+        window.votaAPI.getTerms(),
+        window.votaAPI.getSubscriptions(),
+      ]);
       nextStudentId = students.reduce(
         (largestId, student) => Math.max(largestId, student.id),
         0
@@ -4182,8 +4187,10 @@ async function initializeSettings() {
   });
 
   try {
-    terms = await window.votaAPI.getTerms();
-    subscriptions = await window.votaAPI.getSubscriptions();
+    [terms, subscriptions] = await Promise.all([
+      window.votaAPI.getTerms(),
+      window.votaAPI.getSubscriptions(),
+    ]);
     nextTermId = terms.reduce((max, term) => Math.max(max, term.id), 0) + 1;
   } catch (error) {
     setStorageError("تعذر تحميل إعدادات الترم. لم يتم تعديلها.", error);

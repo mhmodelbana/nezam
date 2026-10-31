@@ -31,6 +31,7 @@
     "companyName", "companyPhone", "companyAddress", "logoDataUrl", "primaryColor",
     "tripLabels", "pickupAreas", "updatedAt",
   ];
+  const studentSubscriptionRequests = new Map();
 
   function toModel(row) {
     if (!row) return null;
@@ -73,6 +74,19 @@
     }
   }
 
+  async function fetchRowsByIds(table, columns, ids) {
+    const uniqueIds = [...new Set(ids.map(Number))];
+    if (!uniqueIds.length) return [];
+    const batches = [];
+    for (let offset = 0; offset < uniqueIds.length; offset += 200) {
+      batches.push(uniqueIds.slice(offset, offset + 200));
+    }
+    const results = await Promise.all(batches.map((batch) =>
+      fetchAllRows(() => client.from(table).select(columns).in("id", batch))
+    ));
+    return results.flat();
+  }
+
   async function studentProfiles(studentIds) {
     if (!studentIds.length) return new Map();
     const { data, error } = await client
@@ -89,11 +103,15 @@
     return { ...student, authUserId: profiles.get(Number(student.id)) };
   }
 
-  async function enrichSubscriptions(rows) {
+  async function enrichSubscriptions(rows, { skipStudentLookup = false } = {}) {
     if (!rows.length) return [];
+    const studentIds = [...new Set(rows.map((row) => Number(row.student_id)))];
+    const termIds = [...new Set(rows.map((row) => Number(row.term_id)))];
     const [students, terms] = await Promise.all([
-      fetchAllRows(() => client.from("students").select("id, name, phone")),
-      fetchAllRows(() => client.from("terms").select("id, name, academic_year, start_date, end_date")),
+      skipStudentLookup
+        ? Promise.resolve([])
+        : fetchRowsByIds("students", "id, name, phone", studentIds),
+      fetchRowsByIds("terms", "id, name, academic_year, start_date, end_date", termIds),
     ]);
     const studentById = new Map(students.map((row) => [Number(row.id), toModel(row)]));
     const termById = new Map(terms.map((row) => [Number(row.id), toModel(row)]));
@@ -116,8 +134,9 @@
     });
   }
 
-  async function enrichTripRequests(rows) {
+  async function enrichTripRequests(rows, { skipStudentLookup = false } = {}) {
     if (!rows.length) return [];
+    if (skipStudentLookup) return rows.map(toModel);
     const studentIds = [...new Set(rows.map((row) => Number(row.student_id)))];
     const { data, error } = await client
       .from("students")
@@ -173,7 +192,9 @@
     const rows = await fetchAllRows(() =>
       client.from("students").select("*").order("created_at", { ascending: false }).order("id", { ascending: false })
     );
-    const profiles = await studentProfiles(rows.map((row) => Number(row.id)));
+    const profiles = window.votaData?.role === "admin"
+      ? await studentProfiles(rows.map((row) => Number(row.id)))
+      : new Map();
     return rows.map((row) => ({
       ...toModel(row),
       authUserId: profiles.get(Number(row.id)),
@@ -187,7 +208,10 @@
       .eq("id", Number(id))
       .maybeSingle();
     if (error) throw error;
-    return data ? enrichStudent(data) : null;
+    if (!data) return null;
+    return window.votaData?.role === "admin"
+      ? enrichStudent(data)
+      : toModel(data);
   }
 
   async function createStudent(student) {
@@ -278,6 +302,30 @@
 
   async function getStudentSubscriptions(studentId) {
     requireStudent(studentId);
+    const id = Number(studentId);
+    if (studentSubscriptionRequests.has(id)) return studentSubscriptionRequests.get(id);
+    const request = (async () => {
+      const rows = await fetchAllRows(() =>
+        client.from("subscriptions")
+          .select("*")
+          .eq("student_id", id)
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+      );
+      return enrichSubscriptions(rows, { skipStudentLookup: true });
+    })();
+    studentSubscriptionRequests.set(id, request);
+    try {
+      return await request;
+    } finally {
+      if (studentSubscriptionRequests.get(id) === request) {
+        studentSubscriptionRequests.delete(id);
+      }
+    }
+  }
+
+  async function getStudentSubscriptionsForAdmin(studentId) {
+    requireAdministrator();
     const rows = await fetchAllRows(() =>
       client.from("subscriptions")
         .select("*")
@@ -441,7 +489,7 @@
         .order("created_at", { ascending: false })
         .order("id", { ascending: false })
     );
-    return enrichTripRequests(rows);
+    return enrichTripRequests(rows, { skipStudentLookup: true });
   }
 
   async function createTripRequest(request) {
@@ -553,6 +601,7 @@
     deleteTerm,
     getSubscriptions,
     getStudentSubscriptions,
+    getStudentSubscriptionsForAdmin,
     createSubscription,
     updateSubscription,
     addPayment,
