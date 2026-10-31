@@ -55,6 +55,22 @@ html:not(.company-name-loaded) [data-company-name]:empty::before {
   }
 }
 
+html:not(.company-name-loaded) [data-company-logo]:empty {
+  color: transparent;
+  background: linear-gradient(
+    100deg,
+    rgba(36, 114, 122, .12) 25%,
+    rgba(36, 114, 122, .3) 45%,
+    rgba(36, 114, 122, .12) 65%
+  );
+  background-size: 220% 100%;
+  animation: company-name-shimmer 1.4s ease-in-out infinite;
+}
+
+.portal-page .brand-mark[data-company-logo][hidden] {
+  display: none;
+}
+
 .portal-page [data-portal-loading]:empty::before {
   content: "";
   width: min(72%, 9rem);
@@ -114,8 +130,11 @@ html:not(.company-name-loaded) [data-company-name]:empty::before {
 }
 
 .portal-page #portal-notification-list[data-portal-loading]::before,
+.portal-page #portal-payment-history[data-portal-loading]::before,
 .portal-page #trip-schedule-cards[data-portal-loading]::before {
   content: "";
+  width: 100%;
+  height: 96px;
   min-height: 92px;
   display: block;
   border: 1px solid rgba(36, 114, 122, .08);
@@ -131,6 +150,7 @@ html:not(.company-name-loaded) [data-company-name]:empty::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html:not(.company-name-loaded) [data-company-logo]:empty,
   .portal-page [data-portal-loading]::before,
   .portal-page [data-portal-loading] {
     animation: none;

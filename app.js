@@ -292,7 +292,14 @@ async function applySystemSettings(settings = null) {
       image.className = "brand-logo-image";
       image.alt = "";
       image.src = currentSystemSettings.logoDataUrl;
+      image.onerror = () => {
+        mark.hidden = true;
+      };
+      mark.hidden = false;
       mark.replaceChildren(image);
+    } else if (mark.hasAttribute("data-company-logo")) {
+      mark.replaceChildren();
+      mark.hidden = true;
     } else {
       mark.textContent = "v.";
     }
@@ -968,7 +975,7 @@ async function initializeStudentPortal() {
     if (homePhotoMark) homePhotoMark.hidden = true;
   }
   page.querySelectorAll(
-    ".portal-details dd, #portal-student-name, #trip-page-date, #trip-page-pickup, #trip-page-eligibility"
+    ".portal-details dd, #portal-student-name, #trip-page-date, #trip-page-pickup, #trip-page-eligibility, #portal-payment-history"
   ).forEach((element) => {
     element.dataset.portalLoading = "true";
   });
@@ -1016,7 +1023,7 @@ async function initializeStudentPortal() {
   function setText(id, value) {
     const element = document.querySelector(`#${id}`);
     if (element) {
-      element.textContent = value || "—";
+      element.textContent = value ?? "";
       delete element.dataset.portalLoading;
     }
   }
@@ -1030,9 +1037,10 @@ async function initializeStudentPortal() {
     if (!photo || !placeholder || !logo || !mark) return;
 
     const photoDataUrl = typeof student.photoDataUrl === "string" ? student.photoDataUrl : "";
+    let hasCompanyLogo = Boolean(currentSystemSettings.logoDataUrl);
     const showPlaceholder = () => {
       photo.hidden = true;
-      placeholder.hidden = false;
+      placeholder.hidden = !hasCompanyLogo;
     };
     photo.onload = () => {
       delete photo.dataset.portalLoading;
@@ -1043,7 +1051,9 @@ async function initializeStudentPortal() {
     };
     logo.onerror = () => {
       logo.hidden = true;
-      mark.hidden = false;
+      mark.hidden = true;
+      hasCompanyLogo = false;
+      if (photo.hidden) placeholder.hidden = true;
     };
     if (photoDataUrl) {
       placeholder.hidden = true;
@@ -1063,7 +1073,7 @@ async function initializeStudentPortal() {
     } else {
       logo.removeAttribute("src");
       logo.hidden = true;
-      mark.hidden = false;
+      mark.hidden = true;
     }
     delete placeholder.dataset.portalLoading;
   }
@@ -1233,9 +1243,10 @@ async function initializeStudentPortal() {
     const photoMark = document.querySelector("#portal-student-photo-mark");
     if (photo && photoPlaceholder && photoLogo && photoMark) {
       const photoDataUrl = typeof student.photoDataUrl === "string" ? student.photoDataUrl : "";
+      let hasCompanyLogo = Boolean(currentSystemSettings.logoDataUrl);
       const showPlaceholder = () => {
         photo.hidden = true;
-        photoPlaceholder.hidden = false;
+        photoPlaceholder.hidden = !hasCompanyLogo;
       };
       photo.onload = () => {
         delete photo.dataset.portalLoading;
@@ -1246,7 +1257,9 @@ async function initializeStudentPortal() {
       };
       photoLogo.onerror = () => {
         photoLogo.hidden = true;
-        photoMark.hidden = false;
+        photoMark.hidden = true;
+        hasCompanyLogo = false;
+        if (photo.hidden) photoPlaceholder.hidden = true;
       };
       if (photoDataUrl) {
         photoPlaceholder.hidden = true;
@@ -1265,7 +1278,7 @@ async function initializeStudentPortal() {
       } else {
         photoLogo.removeAttribute("src");
         photoLogo.hidden = true;
-        photoMark.hidden = false;
+        photoMark.hidden = true;
       }
       delete photo.closest("dd")?.dataset.portalLoading;
     }
@@ -1318,6 +1331,8 @@ async function initializeStudentPortal() {
       });
       const empty = document.querySelector("#portal-no-payments");
       if (empty) empty.hidden = true;
+      const history = document.querySelector("#portal-payment-history");
+      if (history) delete history.dataset.portalLoading;
       return;
     }
     const currentSubscription = subscriptions.find(
@@ -1328,18 +1343,20 @@ async function initializeStudentPortal() {
       : 0;
     setText("portal-student-name", student.name);
     setText("portal-term", currentSubscription
-      ? `${currentSubscription.termName} — ${currentSubscription.academicYear}`
-      : "لا يوجد اشتراك مسجل");
-    setText("portal-price", currentSubscription ? formatMoney(currentSubscription.priceCents) : "—");
-    setText("portal-payment-status", !currentSubscription || paidTotal === 0
-      ? "غير مدفوع"
-      : paidTotal >= currentSubscription.priceCents
-        ? "مدفوع بالكامل"
-        : "مدفوع جزئيًا");
-    setText("portal-paid", currentSubscription ? formatMoney(paidTotal) : "—");
+      ? [currentSubscription.termName, currentSubscription.academicYear].filter(Boolean).join(" — ")
+      : "");
+    setText("portal-price", currentSubscription ? formatMoney(currentSubscription.priceCents) : "");
+    setText("portal-payment-status", currentSubscription
+      ? paidTotal === 0
+        ? "غير مدفوع"
+        : paidTotal >= currentSubscription.priceCents
+          ? "مدفوع بالكامل"
+          : "مدفوع جزئيًا"
+      : "");
+    setText("portal-paid", currentSubscription ? formatMoney(paidTotal) : "");
     setText("portal-remaining", currentSubscription
       ? formatMoney(Math.max(0, currentSubscription.priceCents - paidTotal))
-      : "—");
+      : "");
 
     const history = document.querySelector("#portal-payment-history");
     if (!history) return;
@@ -1360,6 +1377,7 @@ async function initializeStudentPortal() {
     }
     const empty = document.querySelector("#portal-no-payments");
     if (empty) empty.hidden = paymentCount > 0;
+    delete history.dataset.portalLoading;
   }
 
   async function updateTripPage() {
@@ -5960,6 +5978,9 @@ async function initializeApplication() {
   } catch (error) {
     console.error("Unable to initialize the Supabase application.", error);
     document.documentElement.classList.add("company-name-loaded");
+    document.querySelectorAll("[data-company-logo]").forEach((logo) => {
+      logo.hidden = true;
+    });
     const message = document.querySelector("#form-message") ||
       document.querySelector("#portal-message") ||
       document.querySelector("#admin-trips-error") ||
