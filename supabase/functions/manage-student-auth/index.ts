@@ -79,8 +79,7 @@ Deno.serve(async (request: Request) => {
     Number(studentId) < 1 ||
     (!deleting && (
       typeof password !== "string" ||
-      password.length < 10 ||
-      password.length > 128
+      !/^[0-9]{8,128}$/.test(password)
     ))
   ) {
     return respond(400, { error: "Student ID, action, or temporary password is invalid." });

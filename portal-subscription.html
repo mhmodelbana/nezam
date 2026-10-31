@@ -51,8 +51,8 @@
     <section class="portal-password-panel" id="portal-password-section" hidden>
       <span class="eyebrow"><span></span> خطوة مطلوبة</span><h1>أنشئ كلمة مرور جديدة</h1><p>غيّر كلمة المرور المؤقتة قبل متابعة ملفك.</p>
       <form class="portal-password-form" id="portal-password-form">
-        <label class="form-field"><span>كلمة المرور الجديدة (10 أحرف على الأقل)</span><input name="newPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password" required></label>
-        <label class="form-field"><span>تأكيد كلمة المرور</span><input name="confirmPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password" required></label>
+        <label class="form-field"><span>كلمة المرور الجديدة (8 أرقام على الأقل)</span><input name="newPassword" type="password" minlength="8" maxlength="128" pattern="[0-9]{8,128}" inputmode="numeric" autocomplete="new-password" required></label>
+        <label class="form-field"><span>تأكيد كلمة المرور</span><input name="confirmPassword" type="password" minlength="8" maxlength="128" pattern="[0-9]{8,128}" inputmode="numeric" autocomplete="new-password" required></label>
         <p class="form-error" id="portal-password-error" role="alert"></p><button class="primary-button" type="submit">حفظ كلمة المرور ومتابعة</button>
       </form>
     </section>

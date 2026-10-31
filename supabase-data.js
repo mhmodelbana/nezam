@@ -16,6 +16,12 @@
 
   let currentProfile = null;
 
+  function validatePassword(password) {
+    if (typeof password !== "string" || !/^[0-9]{8,128}$/.test(password)) {
+      throw new Error("كلمة المرور يجب أن تتكون من 8 أرقام على الأقل دون حروف أو رموز.");
+    }
+  }
+
   function showError(text) {
     let message = document.querySelector(".local-storage-message");
     if (!message) {
@@ -128,6 +134,7 @@
     if (currentProfile?.role !== "student") {
       throw new Error("يجب تسجيل الدخول بحساب الطالب لتغيير كلمة المرور.");
     }
+    validatePassword(password);
     const { error: passwordError } = await client.auth.updateUser({ password });
     if (passwordError) throw passwordError;
     const { error } = await client.rpc("student_complete_password_change");
@@ -139,6 +146,7 @@
     if (currentProfile?.role !== "admin") {
       throw new Error("يجب تسجيل الدخول بحساب الإدارة لتغيير كلمة المرور.");
     }
+    validatePassword(newPassword);
     const { data: userData, error: userError } = await client.auth.getUser();
     if (userError) throw userError;
     if (!userData.user?.email) throw new Error("تعذر تحديد بريد حساب الإدارة.");

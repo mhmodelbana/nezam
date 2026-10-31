@@ -276,12 +276,12 @@
           <input name="currentPassword" type="password" autocomplete="current-password" required>
         </label>
         <label class="subscription-field">
-          <span>كلمة المرور الجديدة (10 أحرف على الأقل)</span>
-          <input name="newPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password" required>
+          <span>كلمة المرور الجديدة (8 أرقام على الأقل)</span>
+          <input name="newPassword" type="password" minlength="8" maxlength="128" pattern="[0-9]{8,128}" inputmode="numeric" autocomplete="new-password" required>
         </label>
         <label class="subscription-field">
           <span>تأكيد كلمة المرور الجديدة</span>
-          <input name="confirmPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password" required>
+          <input name="confirmPassword" type="password" minlength="8" maxlength="128" pattern="[0-9]{8,128}" inputmode="numeric" autocomplete="new-password" required>
         </label>
         <button class="primary-button" type="submit">حفظ كلمة المرور</button>
       </form>

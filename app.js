@@ -378,13 +378,12 @@ function printReceipt(student, subscription, payment) {
 }
 
 function generateTemporaryPassword() {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
   const password = [];
-  while (password.length < 16) {
-    const bytes = window.crypto.getRandomValues(new Uint8Array(32));
+  while (password.length < 8) {
+    const bytes = window.crypto.getRandomValues(new Uint8Array(16));
     for (const byte of bytes) {
-      if (byte < 228) password.push(alphabet[byte % alphabet.length]);
-      if (password.length === 16) break;
+      if (byte < 250) password.push(String(byte % 10));
+      if (password.length === 8) break;
     }
   }
   return password.join("");
@@ -1571,8 +1570,8 @@ async function initializeStudentPortal() {
     passwordError.textContent = "";
     if (!passwordForm.reportValidity()) return;
     const password = passwordForm.elements.newPassword.value;
-    if (password.length < 10 || password.length > 128) {
-      passwordError.textContent = "كلمة المرور يجب ألا تقل عن 10 أحرف.";
+    if (!/^[0-9]{8,128}$/.test(password)) {
+      passwordError.textContent = "كلمة المرور يجب أن تتكون من 8 أرقام على الأقل.";
       return;
     }
     if (password !== passwordForm.elements.confirmPassword.value) {
@@ -3762,8 +3761,8 @@ async function initializeSettings() {
 
     const currentPassword = adminPasswordForm.elements.currentPassword.value;
     const newPassword = adminPasswordForm.elements.newPassword.value;
-    if (newPassword.length < 10 || newPassword.length > 128) {
-      errorMessage.textContent = "كلمة المرور الجديدة يجب ألا تقل عن 10 أحرف.";
+    if (!/^[0-9]{8,128}$/.test(newPassword)) {
+      errorMessage.textContent = "كلمة المرور الجديدة يجب أن تتكون من 8 أرقام على الأقل.";
       errorMessage.hidden = false;
       return;
     }
