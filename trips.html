@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f5f6f1">
-  <meta name="description" content="إدارة حجوزات رحلات Vota Travel اليومية.">
-  <title>إدارة الرحلات | Vota Travel</title>
+  <meta name="description" content="إدارة حجوزات الرحلات اليومية في {{companyName}}.">
+  <title>إدارة الرحلات | {{companyName}}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,9 +18,9 @@
 </head>
 <body class="trips-page">
   <header class="topbar">
-    <a class="brand" href="dashboard.html" aria-label="العودة للوحة تحكم Vota Travel">
+    <a class="brand" href="dashboard.html" aria-label="العودة للوحة التحكم">
       <span class="brand-mark" aria-hidden="true">v.</span>
-      <span>Vota <strong>Travel</strong></span>
+      <span data-company-name>خدمات نقل الطلاب</span>
     </a>
     <div class="date-time" aria-label="التاريخ والوقت">
       <span id="current-date"></span><span class="date-time-divider" aria-hidden="true"></span><time id="current-time"></time>
@@ -31,11 +31,43 @@
     </a>
   </header>
 
+  <nav class="dashboard-section-nav" aria-label="أقسام لوحة التحكم">
+    <div class="dashboard-section-nav-inner">
+      <a class="dashboard-nav-link" href="dashboard.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m2.5 9 7.5-6 7.5 6v7.5a1 1 0 0 1-1 1h-4.8v-5h-3.4v5H3.5a1 1 0 0 1-1-1V9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الرئيسية
+      </a>
+      <a class="dashboard-nav-link" href="students.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="7.5" cy="6.5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 16v-1a5 5 0 0 1 10 0v1h-10Zm11-6.5a2.8 2.8 0 1 0 0-5.6m1 8.1a4.4 4.4 0 0 1 3.8 4h-2.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الطلاب
+      </a>
+      <a class="dashboard-nav-link" href="subscriptions.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 8h15m-11 4h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        الاشتراكات
+      </a>
+      <a class="dashboard-nav-link" href="cards.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="9" r="1.7" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 13.5a2.6 2.6 0 0 1 5 0m3-4h2.5m-2.5 3h2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        الكارنيهات
+      </a>
+      <a class="dashboard-nav-link is-current" href="trips.html" aria-current="page">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2 13h16l-1.6-5.2a2 2 0 0 0-1.9-1.4H5.5a2 2 0 0 0-1.9 1.4L2 13Zm0 0v1.5m16-1.5v1.5M5 13v1.5m10-1.5v1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15" cy="15.5" r="1.2" fill="currentColor"/></svg>
+        الرحلات
+      </a>
+      <a class="dashboard-nav-link" href="reports.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 16.5h14M5.5 13V9m4.5 4V4m4.5 9V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        التقارير
+      </a>
+      <a class="dashboard-nav-link" href="settings.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/><path d="m16.2 12.5 1 .8-1.5 2.6-1.3-.5a6.8 6.8 0 0 1-1.3.8l-.2 1.3h-3l-.2-1.3a6.8 6.8 0 0 1-1.3-.8l-1.3.5-1.5-2.6 1-.8a6.8 6.8 0 0 1 0-1.5l-1-.8 1.5-2.6 1.3.5a6.8 6.8 0 0 1 1.3-.8l.2-1.3h3l.2 1.3a6.8 6.8 0 0 1 1.3.8l1.3-.5 1.5 2.6-1 .8a6.8 6.8 0 0 1 0 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الإعدادات
+      </a>
+    </div>
+  </nav>
+
   <main class="trips-content">
     <a class="back-link" href="dashboard.html">لوحة التحكم</a>
     <section class="page-heading">
       <div>
-        <span class="eyebrow"><span></span> تشغيل يومي</span>
         <h1>إدارة الرحلات</h1>
         <p>تابع تسجيلات الطلاب اليومية، واعرض أعداد كل موعد ومناطق الركوب وبيانات المسجلين.</p>
       </div>
@@ -44,15 +76,15 @@
 
     <section class="trip-stats" aria-label="ملخص التسجيلات النشطة">
       <article><span>إجمالي المسجلين</span><strong id="trip-total-count">٠</strong></article>
-      <article><span>مسجلو الذهاب</span><strong id="trip-outbound-count">٠</strong></article>
-      <article><span>مسجلو العودة</span><strong id="trip-return-count">٠</strong></article>
+      <article><span>مسجلو <span data-trip-direction-label="outbound">الذهاب</span></span><strong id="trip-outbound-count">٠</strong></article>
+      <article><span>مسجلو <span data-trip-direction-label="return">العودة</span></span><strong id="trip-return-count">٠</strong></article>
       <article><span>مناطق الركوب</span><strong id="trip-pickup-area-count">٠</strong></article>
     </section>
 
     <section class="trip-admin-browser" aria-labelledby="trip-browser-title">
       <header class="trip-admin-browser-heading">
         <div>
-          <span class="panel-kicker">كشف التشغيل</span>
+
           <h2 id="trip-browser-title">المواعيد اليومية</h2>
           <p>اختر اتجاه الرحلة ثم افتح الموعد لمراجعة الطلاب ومناطق الركوب.</p>
         </div>
@@ -65,11 +97,11 @@
       <div class="trip-admin-directions" role="group" aria-label="اختيار اتجاه الرحلة">
         <button class="trip-admin-direction is-selected" type="button" data-admin-direction="outbound" aria-pressed="true">
           <span class="trip-admin-direction-icon" aria-hidden="true">↗</span>
-          <span><strong>ذهاب للجامعة</strong><small>مواعيد الذهاب</small></span>
+          <span><strong data-trip-direction-label="outbound">ذهاب للجامعة</strong><small data-trip-direction-schedule="outbound">مواعيد الذهاب</small></span>
         </button>
         <button class="trip-admin-direction" type="button" data-admin-direction="return" aria-pressed="false">
           <span class="trip-admin-direction-icon" aria-hidden="true">↙</span>
-          <span><strong>عودة</strong><small>مواعيد العودة</small></span>
+          <span><strong data-trip-direction-label="return">عودة</strong><small data-trip-direction-schedule="return">مواعيد العودة</small></span>
         </button>
       </div>
 
@@ -81,13 +113,33 @@
     </section>
 
     <section class="trip-admin-manifest" id="admin-trip-manifest" aria-labelledby="trip-manifest-title" hidden>
+      <header class="trip-print-header" aria-label="بيانات كشف الرحلة">
+        <div class="trip-print-brand">
+          <span class="trip-print-logo" aria-hidden="true">v.</span>
+          <span class="trip-print-brand-name"><strong data-company-name>خدمات نقل الطلاب</strong><small>خدمات نقل الطلاب</small></span>
+        </div>
+        <div class="trip-print-heading">
+          <span>كشف تشغيل رحلة</span>
+          <h2 id="trip-print-trip-title"></h2>
+        </div>
+        <div class="trip-print-meta">
+          <div><span>تاريخ الرحلة</span><strong id="trip-print-date"></strong></div>
+          <div><span>اتجاه الرحلة</span><strong id="trip-print-direction"></strong></div>
+          <div><span>موعد الرحلة</span><strong id="trip-print-time"></strong></div>
+          <div><span>عدد الطلاب</span><strong id="trip-print-count"></strong></div>
+        </div>
+      </header>
       <header class="trip-admin-manifest-heading">
         <div>
-          <span class="panel-kicker">كشف الموعد</span>
+
           <h2 id="trip-manifest-title"></h2>
           <p id="trip-manifest-date"></p>
         </div>
-        <button class="secondary-button" id="admin-trip-back" type="button">العودة للمواعيد</button>
+        <div class="trip-manifest-actions">
+          <button class="secondary-button" id="print-selected-trip" type="button">طباعة الكشف</button>
+          <button class="secondary-button" id="export-selected-trip" type="button">تصدير الكشف</button>
+          <button class="secondary-button" id="admin-trip-back" type="button">العودة للمواعيد</button>
+        </div>
       </header>
       <div class="trip-admin-manifest-tools">
         <label>
@@ -105,8 +157,9 @@
       <div class="trip-admin-table-wrap">
         <table class="trip-admin-table" id="admin-trip-table">
           <thead><tr>
-            <th>الطالب</th><th>كود الطالب</th><th>منطقة الركوب</th>
-            <th>رقم التواصل</th><th>الجامعة والكلية</th><th>الإجراءات</th>
+            <th class="trip-print-number" scope="col">م</th>
+            <th scope="col">الطالب</th><th scope="col">كود الطالب</th><th scope="col">منطقة الركوب</th>
+            <th scope="col">رقم التواصل</th><th scope="col">الجامعة والكلية</th><th scope="col">موعد التسجيل</th>
           </tr></thead>
           <tbody id="admin-trip-students"></tbody>
         </table>
@@ -115,6 +168,10 @@
           <p>جرّب تغيير منطقة الركوب أو عبارة البحث.</p>
         </div>
       </div>
+      <footer class="trip-print-footer">
+        <span><span data-company-name>خدمات نقل الطلاب</span> · كشف تشغيل الرحلة</span>
+        <span>مسؤول الرحلة: <i></i></span>
+      </footer>
     </section>
     <p class="storage-message" id="admin-trips-error" role="alert" hidden></p>
   </main>

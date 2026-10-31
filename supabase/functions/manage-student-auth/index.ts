@@ -19,9 +19,7 @@ Deno.serve(async (request: Request) => {
   if (request.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
-  if (request.method !== "POST") {
-    return respond(405, { error: "Method not allowed." });
-  }
+  if (request.method !== "POST") return respond(405, { error: "Method not allowed." });
 
   const authorization = request.headers.get("Authorization");
   if (!authorization?.startsWith("Bearer ")) {
@@ -29,15 +27,17 @@ Deno.serve(async (request: Request) => {
   }
 
   const projectUrl = Deno.env.get("SUPABASE_URL");
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!projectUrl || !anonKey || !serviceRoleKey) {
+  const publishableKey =
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY");
+  const secretKey =
+    Deno.env.get("SUPABASE_SECRET_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!projectUrl || !publishableKey || !secretKey) {
     console.error("Required Supabase Edge Function environment variables are missing.");
     return respond(500, { error: "Student account service is not configured." });
   }
 
   const token = authorization.slice("Bearer ".length);
-  const callerClient = createClient(projectUrl, anonKey, {
+  const callerClient = createClient(projectUrl, publishableKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const { data: callerData, error: callerError } = await callerClient.auth.getUser(token);
@@ -45,7 +45,7 @@ Deno.serve(async (request: Request) => {
     return respond(401, { error: "The current session is invalid." });
   }
 
-  const serviceClient = createClient(projectUrl, serviceRoleKey, {
+  const serviceClient = createClient(projectUrl, secretKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const { data: callerProfile, error: profileError } = await serviceClient
@@ -72,19 +72,20 @@ Deno.serve(async (request: Request) => {
   const action = input.action;
   const studentId = input.studentId;
   const password = input.password;
+  const deleting = action === "delete";
   if (
-    !["create", "reset"].includes(String(action)) ||
+    !["create", "reset", "delete"].includes(String(action)) ||
     !Number.isSafeInteger(studentId) ||
     Number(studentId) < 1 ||
-    typeof password !== "string" ||
-    password.length < 10 ||
-    password.length > 128
+    (!deleting && (
+      typeof password !== "string" ||
+      password.length < 10 ||
+      password.length > 128
+    ))
   ) {
     return respond(400, { error: "Student ID, action, or temporary password is invalid." });
   }
 
-  const studentCode = `VT-${String(studentId).padStart(4, "0")}`;
-  const email = `student-${Number(studentId)}@students.votatravel.com`;
   const { data: existingProfile, error: existingProfileError } = await serviceClient
     .from("profiles")
     .select("user_id")
@@ -96,10 +97,23 @@ Deno.serve(async (request: Request) => {
   }
 
   let userId = existingProfile?.user_id as string | undefined;
+  if (deleting) {
+    if (userId) {
+      const { error } = await serviceClient.auth.admin.deleteUser(userId);
+      if (error) {
+        console.error("Unable to delete the student's Auth account.", error);
+        return respond(500, { error: "The student account could not be deleted." });
+      }
+    }
+    return respond(200, { userId: userId || null });
+  }
+
+  const studentCode = `VT-${String(studentId).padStart(4, "0")}`;
+  const email = `student-${Number(studentId)}@students.votatravel.com`;
   if (userId) {
     const { error } = await serviceClient.auth.admin.updateUserById(userId, {
       email,
-      password,
+      password: password as string,
       email_confirm: true,
       ban_duration: "none",
       user_metadata: { role: "student", student_id: Number(studentId), student_code: studentCode },
@@ -111,7 +125,7 @@ Deno.serve(async (request: Request) => {
   } else {
     const { data, error } = await serviceClient.auth.admin.createUser({
       email,
-      password,
+      password: password as string,
       email_confirm: true,
       user_metadata: { role: "student", student_id: Number(studentId), student_code: studentCode },
     });

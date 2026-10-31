@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>استيراد البيانات المحلية</title>
+  <style>
+    body{font-family:Tahoma,Arial,sans-serif;max-width:680px;margin:40px auto;padding:0 20px;color:#203b35;line-height:1.8}
+    main{border:1px solid #d5dfd9;border-radius:12px;padding:24px}
+    label{display:block;margin:14px 0 6px;font-weight:700}
+    input,button{font:inherit;padding:10px;width:100%;box-sizing:border-box}
+    button{margin-top:16px;border:0;border-radius:8px;background:#174b55;color:white;cursor:pointer}
+    button:disabled{opacity:.55;cursor:wait}
+    [role=status]{white-space:pre-wrap}
+    .error{color:#a12727}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../supabase-config.js" defer></script>
+  <script src="import-local.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>استيراد البيانات المحلية إلى Supabase</h1>
+    <p>استخدم هذه الصفحة مرة واحدة بعد تشغيل المخطط وإنشاء حساب الإدارة. لن تُرفع كلمات المرور المحلية.</p>
+    <form id="import-form">
+      <label for="email">بريد الإدارة</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="password">كلمة المرور</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <label for="state-file">نسخة JSON من بيانات المتصفح القديمة</label>
+      <input id="state-file" type="file" accept="application/json,.json" required>
+      <p id="preview" role="status"></p>
+      <button id="submit" type="submit">تسجيل الدخول ومعاينة البيانات</button>
+    </form>
+    <p id="message" role="status" aria-live="polite"></p>
+  </main>
+</body>
+</html>

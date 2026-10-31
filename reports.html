@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f6f1">
+  <meta name="description" content="تقارير الطلاب والاشتراكات والتحصيل ومناطق الركوب في {{companyName}}.">
+  <title>التقارير | {{companyName}}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="supabase-data.js" defer></script>
+  <script src="supabase-api.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body class="reports-page">
+  <header class="topbar">
+    <a class="brand" href="dashboard.html" aria-label="العودة للوحة التحكم">
+      <span class="brand-mark" aria-hidden="true">v.</span>
+      <span data-company-name>خدمات نقل الطلاب</span>
+    </a>
+    <div class="date-time" aria-label="التاريخ والوقت">
+      <span id="current-date"></span>
+      <span class="date-time-divider" aria-hidden="true"></span>
+      <time id="current-time"></time>
+    </div>
+    <a class="logout-link" href="index.html">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8 3.5H4.5v13H8m3-3 3.5-3.5L11 6.5M7 10h8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>تسجيل الخروج</span>
+    </a>
+  </header>
+
+  <nav class="dashboard-section-nav" aria-label="أقسام لوحة التحكم">
+    <div class="dashboard-section-nav-inner">
+      <a class="dashboard-nav-link" href="dashboard.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m2.5 9 7.5-6 7.5 6v7.5a1 1 0 0 1-1 1h-4.8v-5h-3.4v5H3.5a1 1 0 0 1-1-1V9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الرئيسية
+      </a>
+      <a class="dashboard-nav-link" href="students.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="7.5" cy="6.5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 16v-1a5 5 0 0 1 10 0v1h-10Zm11-6.5a2.8 2.8 0 1 0 0-5.6m1 8.1a4.4 4.4 0 0 1 3.8 4h-2.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الطلاب
+      </a>
+      <a class="dashboard-nav-link" href="subscriptions.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 8h15m-11 4h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        الاشتراكات
+      </a>
+      <a class="dashboard-nav-link" href="cards.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="9" r="1.7" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 13.5a2.6 2.6 0 0 1 5 0m3-4h2.5m-2.5 3h2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        الكارنيهات
+      </a>
+      <a class="dashboard-nav-link" href="trips.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2 13h16l-1.6-5.2a2 2 0 0 0-1.9-1.4H5.5a2 2 0 0 0-1.9 1.4L2 13Zm0 0v1.5m16-1.5v1.5M5 13v1.5m10-1.5v1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15" cy="15.5" r="1.2" fill="currentColor"/></svg>
+        الرحلات
+      </a>
+      <a class="dashboard-nav-link is-current" href="reports.html" aria-current="page">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 16.5h14M5.5 13V9m4.5 4V4m4.5 9V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        التقارير
+      </a>
+      <a class="dashboard-nav-link" href="settings.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/><path d="m16.2 12.5 1 .8-1.5 2.6-1.3-.5a6.8 6.8 0 0 1-1.3.8l-.2 1.3h-3l-.2-1.3a6.8 6.8 0 0 1-1.3-.8l-1.3.5-1.5-2.6 1-.8a6.8 6.8 0 0 1 0-1.5l-1-.8 1.5-2.6 1.3.5a6.8 6.8 0 0 1 1.3-.8l.2-1.3h3l.2 1.3a6.8 6.8 0 0 1 1.3.8l1.3-.5 1.5 2.6-1 .8a6.8 6.8 0 0 1 0 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الإعدادات
+      </a>
+    </div>
+  </nav>
+
+  <main class="subscriptions-content reports-content">
+    <a class="back-link" href="dashboard.html">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M15.5 10h-11m0 0 4.5-4.5M4.5 10 9 14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      لوحة التحكم
+    </a>
+    <header class="reports-print-header" aria-label="بيانات التقرير المطبوعة">
+      <div class="reports-print-brand">
+        <span class="reports-print-logo" aria-hidden="true">v.</span>
+        <span class="reports-print-brand-name"><strong data-company-name>خدمات نقل الطلاب</strong><small>خدمات نقل الطلاب</small></span>
+      </div>
+      <div class="reports-print-heading">
+        <span>كشف تقارير النظام</span>
+        <h2 id="report-print-title">تقرير الطلاب</h2>
+      </div>
+      <div class="reports-print-meta">
+        <div><span>تاريخ الطباعة</span><strong id="report-print-date"></strong></div>
+        <div><span>عدد النتائج</span><strong id="report-print-count"></strong></div>
+      </div>
+      <p class="reports-print-filters" id="report-print-filters"></p>
+    </header>
+    <section class="page-heading reports-heading">
+      <div>
+        <span class="panel-kicker">مركز التحليل والمتابعة</span>
+        <h1>التقارير والتحليلات</h1>
+        <p>تقارير دقيقة للطلاب والاشتراكات والتحصيل ومناطق الركوب والرحلات.</p>
+      </div>
+      <div class="reports-actions">
+        <button class="secondary-button" id="print-report" type="button">طباعة التقرير</button>
+        <button class="primary-button" id="export-report" type="button">تصدير CSV</button>
+      </div>
+    </section>
+
+    <p class="reports-error" id="reports-error" role="alert" hidden></p>
+    <section class="reports-stats" aria-label="ملخص التقرير">
+      <article class="subscription-stat"><span class="stat-icon stat-icon-green">▤</span><span class="stat-label" id="report-metric-label-1">النتائج</span><strong id="report-metric-1">٠</strong></article>
+      <article class="subscription-stat"><span class="stat-icon stat-icon-purple">ج</span><span class="stat-label" id="report-metric-label-2">إجمالي المستحق</span><strong id="report-metric-2">٠</strong></article>
+      <article class="subscription-stat"><span class="stat-icon stat-icon-blue">✓</span><span class="stat-label" id="report-metric-label-3">إجمالي المحصل</span><strong id="report-metric-3">٠</strong></article>
+      <article class="subscription-stat"><span class="stat-icon stat-icon-amber">↗</span><span class="stat-label" id="report-metric-label-4">المتبقي</span><strong id="report-metric-4">٠</strong></article>
+    </section>
+
+    <section class="subscription-panel reports-filter-panel" aria-label="إعداد التقرير">
+      <div class="reports-filters">
+        <label class="reports-filter reports-filter-type">
+          <span>نوع التقرير</span>
+          <select id="report-type">
+            <option value="students">تقرير الطلاب</option>
+            <option value="subscriptions">تقرير الاشتراكات</option>
+            <option value="payments">تقرير التحصيل والمدفوعات</option>
+            <option value="regions">تقرير البلاد / مناطق الركوب</option>
+            <option value="universities">تقرير الجامعات والكليات</option>
+            <option value="trips">تقرير الرحلات والحجوزات</option>
+          </select>
+        </label>
+        <label class="reports-filter reports-filter-search">
+          <span>بحث</span>
+          <input id="report-search" type="search" placeholder="اسم الطالب، هاتف، جامعة..." autocomplete="off">
+        </label>
+        <label class="reports-filter">
+          <span>البلد / منطقة الركوب</span>
+          <select id="report-region"><option value="">كل المناطق</option></select>
+        </label>
+        <label class="reports-filter">
+          <span>الجامعة</span>
+          <select id="report-university"><option value="">كل الجامعات</option></select>
+        </label>
+        <label class="reports-filter">
+          <span>الترم</span>
+          <select id="report-term"><option value="">كل الترمات</option></select>
+        </label>
+        <label class="reports-filter">
+          <span id="report-status-label">الحالة</span>
+          <select id="report-status"><option value="">كل الحالات</option></select>
+        </label>
+        <label class="reports-filter">
+          <span>من تاريخ</span>
+          <input id="report-from" type="date">
+        </label>
+        <label class="reports-filter">
+          <span>إلى تاريخ</span>
+          <input id="report-to" type="date">
+        </label>
+        <button class="secondary-button reports-reset" id="reset-report-filters" type="button">مسح الفلاتر</button>
+      </div>
+      <p class="reports-filter-hint" id="report-filter-hint">التاريخ يصف تاريخ تسجيل الطالب.</p>
+    </section>
+
+    <section class="reports-insight-grid" aria-label="تحليل التقرير">
+      <article class="subscription-panel reports-chart-panel">
+        <header class="subscription-panel-heading">
+          <div><span class="panel-kicker">قراءة سريعة</span><h2 id="report-chart-title">توزيع النتائج</h2></div>
+          <span class="reports-chart-total" id="report-chart-total">٠</span>
+        </header>
+        <div class="reports-chart" id="report-chart" aria-live="polite"></div>
+      </article>
+      <aside class="reports-note-card">
+        <span class="reports-note-icon" aria-hidden="true">✦</span>
+        <span class="panel-kicker">التقرير الحالي</span>
+        <h2 id="report-summary-title">تقرير الطلاب</h2>
+        <p id="report-summary">يعرض بيانات الطلاب المسجلين وحالتهم ومناطق الركوب.</p>
+        <small id="report-updated-at"></small>
+      </aside>
+    </section>
+
+    <section class="subscription-panel reports-table-panel" aria-labelledby="report-table-title">
+      <header class="subscription-panel-heading reports-table-heading">
+        <div><span class="panel-kicker">البيانات التفصيلية</span><h2 id="report-table-title">قائمة الطلاب</h2><p id="report-results-count" aria-live="polite"></p></div>
+      </header>
+      <div class="reports-table-wrap">
+        <table class="reports-table">
+          <thead id="report-table-head"></thead>
+          <tbody id="report-table-body"></tbody>
+        </table>
+        <div class="reports-empty" id="report-empty" hidden>
+          <span aria-hidden="true">⌕</span>
+          <strong>لا توجد نتائج مطابقة</strong>
+          <p>غيّر الفلاتر أو امسحها لعرض بيانات أخرى.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

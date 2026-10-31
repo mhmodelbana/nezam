@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f5f6f1">
-  <meta name="description" content="إعداد الفصول الدراسية ومواعيد تشغيل رحلات Vota Travel.">
-  <title>الإعدادات | Vota Travel</title>
+  <meta name="description" content="إدارة بيانات النظام وهوية {{companyName}} والاشتراكات ومواعيد الرحلات.">
+  <title>الإعدادات | {{companyName}}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,9 +18,9 @@
 </head>
 <body class="settings-page">
   <header class="topbar">
-    <a class="brand" href="dashboard.html" aria-label="العودة للوحة تحكم Vota Travel">
+    <a class="brand" href="dashboard.html" aria-label="العودة للوحة التحكم">
       <span class="brand-mark" aria-hidden="true">v.</span>
-      <span>Vota <strong>Travel</strong></span>
+      <span data-company-name>خدمات نقل الطلاب</span>
     </a>
     <div class="date-time" aria-label="التاريخ والوقت">
       <span id="current-date"></span>
@@ -33,6 +33,39 @@
     </a>
   </header>
 
+  <nav class="dashboard-section-nav" aria-label="أقسام لوحة التحكم">
+    <div class="dashboard-section-nav-inner">
+      <a class="dashboard-nav-link" href="dashboard.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m2.5 9 7.5-6 7.5 6v7.5a1 1 0 0 1-1 1h-4.8v-5h-3.4v5H3.5a1 1 0 0 1-1-1V9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الرئيسية
+      </a>
+      <a class="dashboard-nav-link" href="students.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="7.5" cy="6.5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 16v-1a5 5 0 0 1 10 0v1h-10Zm11-6.5a2.8 2.8 0 1 0 0-5.6m1 8.1a4.4 4.4 0 0 1 3.8 4h-2.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الطلاب
+      </a>
+      <a class="dashboard-nav-link" href="subscriptions.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 8h15m-11 4h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        الاشتراكات
+      </a>
+      <a class="dashboard-nav-link" href="cards.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="9" r="1.7" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 13.5a2.6 2.6 0 0 1 5 0m3-4h2.5m-2.5 3h2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        الكارنيهات
+      </a>
+      <a class="dashboard-nav-link" href="trips.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2 13h16l-1.6-5.2a2 2 0 0 0-1.9-1.4H5.5a2 2 0 0 0-1.9 1.4L2 13Zm0 0v1.5m16-1.5v1.5M5 13v1.5m10-1.5v1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15" cy="15.5" r="1.2" fill="currentColor"/></svg>
+        الرحلات
+      </a>
+      <a class="dashboard-nav-link" href="reports.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 16.5h14M5.5 13V9m4.5 4V4m4.5 9V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        التقارير
+      </a>
+      <a class="dashboard-nav-link is-current" href="settings.html" aria-current="page">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/><path d="m16.2 12.5 1 .8-1.5 2.6-1.3-.5a6.8 6.8 0 0 1-1.3.8l-.2 1.3h-3l-.2-1.3a6.8 6.8 0 0 1-1.3-.8l-1.3.5-1.5-2.6 1-.8a6.8 6.8 0 0 1 0-1.5l-1-.8 1.5-2.6 1.3.5a6.8 6.8 0 0 1 1.3-.8l.2-1.3h3l.2 1.3a6.8 6.8 0 0 1 1.3.8l1.3-.5 1.5 2.6-1 .8a6.8 6.8 0 0 1 0 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الإعدادات
+      </a>
+    </div>
+  </nav>
+
   <main class="settings-content">
     <a class="back-link" href="dashboard.html">
       <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M15.5 10h-11m0 0 4.5-4.5M4.5 10 9 14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -41,16 +74,103 @@
 
     <section class="page-heading settings-heading">
       <div>
-        <span class="eyebrow"><span></span> إعدادات الخدمة</span>
         <h1>الإعدادات</h1>
-        <p>حدد أسعار الفصول الدراسية ومواعيد التشغيل اليومية لخدمة Vota Travel.</p>
+        <p>أدر الاشتراكات الدراسية ومواعيد الرحلات وأمان حساب الإدارة.</p>
       </div>
     </section>
 
-    <section class="subscription-panel settings-terms-panel" aria-labelledby="terms-title">
+    <nav class="student-profile-tabs settings-tabs" role="tablist" aria-label="أقسام الإعدادات">
+      <button class="student-profile-tab is-active" id="settings-tab-system" type="button" role="tab"
+        aria-controls="settings-panel-system" aria-selected="true" tabindex="0" data-settings-tab="system">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 5.5 10 2l7 3.5v9L10 18l-7-3.5v-9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m3.5 5.8 6.5 3.3 6.5-3.3M10 9.2V18" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <span>بيانات النظام</span>
+      </button>
+      <button class="student-profile-tab" id="settings-tab-terms" type="button" role="tab"
+        aria-controls="settings-panel-terms" aria-selected="false" tabindex="-1" data-settings-tab="terms">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 2.8v2.5m7-2.5v2.5M3 8h14m-10 3h2m-2 3h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span>الترم والاشتراك</span>
+      </button>
+      <button class="student-profile-tab" id="settings-tab-trips" type="button" role="tab"
+        aria-controls="settings-panel-trips" aria-selected="false" tabindex="-1" data-settings-tab="trips">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2 12.5h16l-1.6-5a2 2 0 0 0-1.9-1.4H5.5a2 2 0 0 0-1.9 1.4L2 12.5Zm0 0V15m16-2.5V15M5 12.5V15m10-2.5V15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15" cy="15.5" r="1.2" fill="currentColor"/></svg>
+        <span>مواعيد الرحلات</span>
+      </button>
+      <button class="student-profile-tab" id="settings-tab-security" type="button" role="tab"
+        aria-controls="settings-panel-security" aria-selected="false" tabindex="-1" data-settings-tab="security">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="4" y="8.5" width="12" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 8.5V6a3.5 3.5 0 0 1 7 0v2.5m-3.5 3v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span>أمان الحساب</span>
+      </button>
+    </nav>
+
+    <section class="subscription-panel system-settings-panel" id="settings-panel-system" role="tabpanel"
+      aria-labelledby="settings-tab-system" tabindex="0" data-settings-panel="system">
+      <div class="subscription-panel-heading">
+        <div><h2>بيانات النظام</h2></div>
+      </div>
+      <form class="system-settings-form" id="system-settings-form">
+        <fieldset class="system-settings-group">
+          <legend>بيانات الشركة</legend>
+          <div class="system-settings-fields">
+            <label class="subscription-field">
+              <span>اسم الشركة <b>*</b></span>
+              <input name="companyName" type="text" maxlength="80" required>
+            </label>
+            <label class="subscription-field">
+              <span>رقم الهاتف</span>
+              <input name="companyPhone" type="tel" maxlength="30" inputmode="tel">
+            </label>
+            <label class="subscription-field system-settings-wide">
+              <span>العنوان</span>
+              <input name="companyAddress" type="text" maxlength="160">
+            </label>
+          </div>
+        </fieldset>
+        <fieldset class="system-settings-group">
+          <legend>هوية النظام</legend>
+          <div class="system-settings-fields">
+            <label class="subscription-field">
+              <span>اللون الأساسي</span>
+              <input name="primaryColor" type="color" value="#174b55" required>
+            </label>
+            <label class="subscription-field">
+              <span>شعار الشركة</span>
+              <input id="system-logo-file" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml">
+            </label>
+          </div>
+          <div class="system-logo-preview" id="system-logo-preview" hidden>
+            <img id="system-logo-preview-image" alt="معاينة شعار الشركة">
+            <button class="secondary-button" id="clear-system-logo" type="button">إزالة الشعار</button>
+          </div>
+        </fieldset>
+        <fieldset class="system-settings-group">
+          <legend>بيانات خدمة الرحلات</legend>
+          <div class="system-settings-fields">
+            <label class="subscription-field">
+              <span>اسم رحلة الذهاب <b>*</b></span>
+              <input name="outboundLabel" type="text" maxlength="40" required>
+            </label>
+            <label class="subscription-field">
+              <span>اسم رحلة العودة <b>*</b></span>
+              <input name="returnLabel" type="text" maxlength="40" required>
+            </label>
+            <label class="subscription-field system-settings-wide">
+              <span>مناطق الركوب (كل منطقة في سطر)</span>
+              <textarea name="pickupAreas" rows="4" maxlength="10000" placeholder="مثال: مدينة نصر&#10;المعادي"></textarea>
+            </label>
+          </div>
+        </fieldset>
+        <div class="system-settings-actions">
+          <button class="primary-button" type="submit">حفظ بيانات النظام</button>
+          <p class="form-error system-settings-error" id="system-settings-error" role="alert" hidden></p>
+          <p class="admin-password-success" id="system-settings-success" role="status" hidden>تم حفظ بيانات النظام.</p>
+        </div>
+      </form>
+    </section>
+
+    <section class="subscription-panel settings-terms-panel" id="settings-panel-terms" role="tabpanel"
+      aria-labelledby="settings-tab-terms" tabindex="0" data-settings-panel="terms" hidden>
       <div class="subscription-panel-heading">
         <div>
-          <span class="panel-kicker">الاشتراكات الدراسية</span>
           <h2 id="terms-title">بيانات الترم والاشتراك</h2>
         </div>
         <span class="panel-icon term-panel-icon" aria-hidden="true">
@@ -93,10 +213,10 @@
       <p class="subscription-error storage-error" id="settings-storage-error" role="alert" hidden></p>
     </section>
 
-    <section class="trip-schedule-manager settings-trip-schedule-manager" aria-labelledby="trip-schedule-title">
+    <section class="trip-schedule-manager settings-trip-schedule-manager" id="settings-panel-trips" role="tabpanel"
+      aria-labelledby="settings-tab-trips" tabindex="0" data-settings-panel="trips" hidden>
       <header class="trip-schedule-manager-heading">
         <div>
-          <span class="panel-kicker">إعداد التشغيل اليومي</span>
           <h2 id="trip-schedule-title">مواعيد الرحلات</h2>
           <p>المواعيد النشطة تظهر للطلاب كل يوم، ويمكنك تعديلها أو إيقافها في أي وقت.</p>
         </div>
@@ -128,13 +248,52 @@
       </div>
       <p class="subscription-error storage-error" id="trip-schedule-access-error" role="alert" hidden></p>
     </section>
+
+    <section class="subscription-panel admin-password-panel" id="settings-panel-security" role="tabpanel"
+      aria-labelledby="settings-tab-security" tabindex="0" data-settings-panel="security" hidden>
+      <div class="subscription-panel-heading">
+        <div>
+          <h2 id="admin-password-title">حساب الإدارة</h2>
+        </div>
+      </div>
+      <form class="admin-login-form" id="admin-login-form">
+        <label class="subscription-field">
+          <span>البريد الإلكتروني الجديد (سيتطلب تأكيده من البريد)</span>
+          <input name="loginName" type="email" maxlength="254" autocomplete="email" required>
+        </label>
+        <label class="subscription-field">
+          <span>كلمة المرور الحالية للتأكيد</span>
+          <input name="currentPassword" type="password" autocomplete="current-password" required>
+        </label>
+        <button class="secondary-button" type="submit">تحديث البريد الإلكتروني</button>
+      </form>
+      <p class="form-error admin-login-error" id="admin-login-error" role="alert" hidden></p>
+      <p class="admin-password-success admin-login-success" id="admin-login-success" role="status" hidden>أُرسل رابط تأكيد البريد الجديد. أكّده قبل استخدامه لتسجيل الدخول.</p>
+      <h3 class="admin-password-section-title">تغيير كلمة المرور</h3>
+      <form class="admin-password-form" id="admin-password-form">
+        <label class="subscription-field">
+          <span>كلمة المرور الحالية</span>
+          <input name="currentPassword" type="password" autocomplete="current-password" required>
+        </label>
+        <label class="subscription-field">
+          <span>كلمة المرور الجديدة (10 أحرف على الأقل)</span>
+          <input name="newPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password" required>
+        </label>
+        <label class="subscription-field">
+          <span>تأكيد كلمة المرور الجديدة</span>
+          <input name="confirmPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password" required>
+        </label>
+        <button class="primary-button" type="submit">حفظ كلمة المرور</button>
+      </form>
+      <p class="form-error admin-password-error" id="admin-password-error" role="alert" hidden></p>
+      <p class="admin-password-success" id="admin-password-success" role="status" hidden>تم تغيير كلمة مرور الإدارة بنجاح.</p>
+    </section>
   </main>
 
   <dialog class="payment-dialog" id="term-price-dialog" aria-labelledby="term-price-dialog-title">
     <form class="payment-form" id="term-price-form">
       <div class="dialog-heading">
         <div>
-          <span class="panel-kicker">تحديث السعر</span>
           <h2 id="term-price-dialog-title">تعديل بيانات الترم</h2>
         </div>
         <button class="icon-button" id="close-term-price-dialog" type="button" aria-label="إغلاق">×</button>

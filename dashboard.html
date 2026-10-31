@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f5f6f1">
-  <meta name="description" content="إدارة الطلاب والاشتراكات والإعدادات في Vota Travel.">
-  <title>لوحة التحكم | Vota Travel</title>
+  <meta name="description" content="إدارة الطلاب والاشتراكات والإعدادات في {{companyName}}.">
+  <title>لوحة التحكم | {{companyName}}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,9 +18,9 @@
 </head>
 <body class="dashboard-page">
   <header class="topbar">
-    <a class="brand" href="dashboard.html" aria-label="Vota Travel">
+    <a class="brand" href="dashboard.html" aria-label="لوحة التحكم">
       <span class="brand-mark" aria-hidden="true">v.</span>
-      <span>Vota <strong>Travel</strong></span>
+      <span data-company-name>خدمات نقل الطلاب</span>
     </a>
     <div class="date-time" aria-label="التاريخ والوقت">
       <span id="current-date"></span>
@@ -37,7 +37,6 @@
 
   <main class="dashboard" aria-label="أقسام لوحة التحكم">
     <div class="dashboard-intro">
-      <span class="eyebrow"><span></span> مساحة الإدارة</span>
       <h1>لوحة التحكم</h1>
       <p>إدارة الطلاب والاشتراكات والرحلات من مكان واحد.</p>
     </div>
@@ -66,6 +65,19 @@
       <span class="module-arrow" aria-hidden="true">←</span>
     </a>
 
+    <a class="module-card cards-card" href="cards.html" aria-label="كارنيهات الطلاب">
+      <span class="module-icon cards-icon" aria-hidden="true">
+        <svg viewBox="0 0 28 28" fill="none">
+          <rect x="3" y="5" width="22" height="18" rx="3.5" stroke="currentColor" stroke-width="1.8"/>
+          <circle cx="10" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M5.5 20a4.6 4.6 0 0 1 9 0m3-7h4m-4 4h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="module-label">كارنيهات الطلاب</span>
+      <span class="module-description">معاينة وطباعة الكارنيهات</span>
+      <span class="module-arrow" aria-hidden="true">←</span>
+    </a>
+
     <a class="module-card trips-card" href="trips.html" aria-label="إدارة الرحلات">
       <span class="module-icon trips-icon" aria-hidden="true">
         <svg viewBox="0 0 28 28" fill="none">
@@ -75,6 +87,15 @@
       </span>
       <span class="module-label">إدارة الرحلات</span>
       <span class="module-description">المواعيد اليومية وكشوف المسجلين</span>
+      <span class="module-arrow" aria-hidden="true">←</span>
+    </a>
+
+    <a class="module-card reports-card" href="reports.html" aria-label="التقارير والتحليلات">
+      <span class="module-icon reports-icon" aria-hidden="true">
+        <svg viewBox="0 0 28 28" fill="none"><path d="M4 23.5h20M7 19v-6m7 6V5m7 14v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="10" r="1.5" fill="currentColor"/><circle cx="14" cy="3.5" r="1.5" fill="currentColor"/><circle cx="21" cy="7" r="1.5" fill="currentColor"/></svg>
+      </span>
+      <span class="module-label">التقارير والتحليلات</span>
+      <span class="module-description">الطلاب والاشتراكات والتحصيل والمناطق</span>
       <span class="module-arrow" aria-hidden="true">←</span>
     </a>
 

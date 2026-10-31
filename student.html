@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f5f6f1">
-  <meta name="description" content="ملف طالب Vota Travel وبيانات اشتراكه.">
-  <title>ملف الطالب | Vota Travel</title>
+  <meta name="description" content="ملف الطالب وبيانات اشتراكه في {{companyName}}.">
+  <title>ملف الطالب | {{companyName}}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,9 +18,9 @@
 </head>
 <body class="student-profile-page">
   <header class="topbar">
-    <a class="brand" href="dashboard.html" aria-label="العودة للوحة تحكم Vota Travel">
+    <a class="brand" href="dashboard.html" aria-label="العودة للوحة التحكم">
       <span class="brand-mark" aria-hidden="true">v.</span>
-      <span>Vota <strong>Travel</strong></span>
+      <span data-company-name>خدمات نقل الطلاب</span>
     </a>
     <div class="date-time" aria-label="التاريخ والوقت">
       <span id="current-date"></span>
@@ -33,66 +33,147 @@
     </a>
   </header>
 
+  <nav class="dashboard-section-nav" aria-label="أقسام لوحة التحكم">
+    <div class="dashboard-section-nav-inner">
+      <a class="dashboard-nav-link" href="dashboard.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m2.5 9 7.5-6 7.5 6v7.5a1 1 0 0 1-1 1h-4.8v-5h-3.4v5H3.5a1 1 0 0 1-1-1V9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الرئيسية
+      </a>
+      <a class="dashboard-nav-link is-current" href="students.html" aria-current="page">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="7.5" cy="6.5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 16v-1a5 5 0 0 1 10 0v1h-10Zm11-6.5a2.8 2.8 0 1 0 0-5.6m1 8.1a4.4 4.4 0 0 1 3.8 4h-2.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الطلاب
+      </a>
+      <a class="dashboard-nav-link" href="subscriptions.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 8h15m-11 4h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        الاشتراكات
+      </a>
+      <a class="dashboard-nav-link" href="cards.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="9" r="1.7" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 13.5a2.6 2.6 0 0 1 5 0m3-4h2.5m-2.5 3h2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        الكارنيهات
+      </a>
+      <a class="dashboard-nav-link" href="trips.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2 13h16l-1.6-5.2a2 2 0 0 0-1.9-1.4H5.5a2 2 0 0 0-1.9 1.4L2 13Zm0 0v1.5m16-1.5v1.5M5 13v1.5m10-1.5v1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15" cy="15.5" r="1.2" fill="currentColor"/></svg>
+        الرحلات
+      </a>
+      <a class="dashboard-nav-link" href="reports.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 16.5h14M5.5 13V9m4.5 4V4m4.5 9V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        التقارير
+      </a>
+      <a class="dashboard-nav-link" href="settings.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/><path d="m16.2 12.5 1 .8-1.5 2.6-1.3-.5a6.8 6.8 0 0 1-1.3.8l-.2 1.3h-3l-.2-1.3a6.8 6.8 0 0 1-1.3-.8l-1.3.5-1.5-2.6 1-.8a6.8 6.8 0 0 1 0-1.5l-1-.8 1.5-2.6 1.3.5a6.8 6.8 0 0 1 1.3-.8l.2-1.3h3l.2 1.3a6.8 6.8 0 0 1 1.3.8l1.3-.5 1.5 2.6-1 .8a6.8 6.8 0 0 1 0 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الإعدادات
+      </a>
+    </div>
+  </nav>
+
   <main class="student-profile-content">
     <a class="back-link" href="students.html">العودة لإدارة الطلاب</a>
     <p class="student-profile-message" id="student-profile-message" role="status" hidden></p>
     <section id="student-profile" hidden>
-      <p class="print-document-label">Vota Travel | ملف بيانات الطالب</p>
+      <header class="print-document-header" aria-label="بيانات ملف الطالب">
+        <div class="print-document-brand">
+          <span class="print-document-logo" aria-hidden="true">v.</span>
+          <span><strong data-company-name>خدمات نقل الطلاب</strong><small>خدمات نقل الطلاب</small></span>
+        </div>
+        <div class="print-document-title">
+          <span class="print-profile-title-all">ملف بيانات الطالب</span>
+          <span class="print-profile-title-details">البيانات الأساسية والتواصل</span>
+          <span class="print-profile-title-subscriptions">الاشتراكات والمدفوعات</span>
+          <strong id="print-profile-name"></strong>
+          <small>كود الطالب: <b id="print-profile-code" dir="ltr"></b></small>
+        </div>
+      </header>
       <header class="student-profile-heading">
         <div>
-          <span class="eyebrow"><span></span> الملف الشخصي للطالب</span>
           <h1 id="profile-name"></h1>
           <p>اسم المستخدم: <strong id="profile-code" dir="ltr"></strong></p>
         </div>
         <div class="student-profile-actions">
-          <button class="secondary-button" id="print-student-file" type="button">طباعة ملف الطالب</button>
-          <a class="primary-button" id="profile-edit" href="#">تعديل البيانات</a>
+          <button class="secondary-button profile-icon-action" id="print-student-file" type="button" aria-label="طباعة ملف الطالب" title="طباعة ملف الطالب">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 6V2.8h9V6m-9 8H3.2V7.2h13.6V14h-2.3m-9 0v3.2h9V14h-9Zm7-4h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <a class="primary-button profile-icon-action" id="profile-edit" href="#" aria-label="تعديل بيانات الطالب" title="تعديل بيانات الطالب">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12.8 3.2 4 4M3 17l3.6-.8L16.7 6.1a1.9 1.9 0 0 0-2.7-2.7L3.9 13.5 3 17Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="profile-icon-action" id="profile-call" href="#" aria-label="اتصال بالطالب" title="اتصال بالطالب">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6.2 2.8H3.8c-.6 0-1 .5-1 1.1.3 6.7 5.6 12 12.3 12.3.6 0 1.1-.4 1.1-1v-2.4l-3.1-1.1-1.4 1.6a11.2 11.2 0 0 1-4.9-4.9l1.6-1.4-1.1-3.2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <details class="profile-more-actions">
+            <summary aria-label="المزيد من الإجراءات" title="المزيد من الإجراءات">
+              <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="1.5"/><circle cx="10" cy="10" r="1.5"/><circle cx="16" cy="10" r="1.5"/></svg>
+            </summary>
+            <div class="profile-more-actions-menu" id="profile-more-actions-menu"></div>
+          </details>
         </div>
       </header>
 
-      <section class="portal-card" aria-labelledby="profile-details-title">
-        <div class="portal-card-heading"><h2 id="profile-details-title">البيانات الأساسية والتواصل</h2></div>
-        <dl class="portal-details">
-          <div><dt>رقم الهاتف</dt><dd id="profile-phone"></dd></div>
-          <div><dt>منطقة الركوب</dt><dd id="profile-pickup"></dd></div>
-          <div><dt>الجامعة</dt><dd id="profile-university"></dd></div>
-          <div><dt>الكلية / التخصص</dt><dd id="profile-faculty"></dd></div>
-          <div><dt>السنة الدراسية</dt><dd id="profile-study-year"></dd></div>
-          <div><dt>رقم ولي الأمر</dt><dd id="profile-emergency-phone"></dd></div>
-          <div><dt>حالة الطالب</dt><dd id="profile-status"></dd></div>
-          <div><dt>حالة حساب البوابة</dt><dd id="profile-account-status"></dd></div>
-          <div><dt>بداية الاشتراك</dt><dd id="profile-subscription-start"></dd></div>
-          <div><dt>نهاية الاشتراك</dt><dd id="profile-subscription-end"></dd></div>
-          <div><dt>تاريخ التسجيل</dt><dd id="profile-created-at"></dd></div>
-          <div><dt>آخر تعديل</dt><dd id="profile-updated-at"></dd></div>
-          <div class="portal-detail-wide"><dt>ملاحظات</dt><dd id="profile-notes"></dd></div>
-        </dl>
-      </section>
+      <nav class="student-profile-tabs" role="tablist" aria-label="أقسام ملف الطالب">
+        <button class="student-profile-tab is-active" id="profile-tab-details" type="button" role="tab"
+          aria-controls="profile-panel-details" aria-selected="true" tabindex="0" data-profile-tab="details">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 17a6.5 6.5 0 0 1 13 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>بيانات الطالب</span>
+        </button>
+        <button class="student-profile-tab" id="profile-tab-subscriptions" type="button" role="tab"
+          aria-controls="profile-panel-subscriptions" aria-selected="false" tabindex="-1" data-profile-tab="subscriptions">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 8h15m-11 4h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>الاشتراكات والمدفوعات</span>
+        </button>
+      </nav>
 
-      <section class="portal-card" aria-labelledby="profile-subscriptions-title">
-        <div class="portal-card-heading"><h2 id="profile-subscriptions-title">الاشتراكات والمدفوعات</h2></div>
-        <div class="profile-subscriptions-wrap">
-          <table class="profile-subscriptions">
-            <thead>
-              <tr><th>الترم</th><th>بداية الاشتراك</th><th>نهاية الاشتراك</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>آخر دفعة</th><th>طريقة الدفع</th><th>الحالة</th></tr>
-            </thead>
-            <tbody id="profile-subscription-rows"></tbody>
-          </table>
-          <p id="profile-no-subscriptions">لا توجد اشتراكات مسجلة لهذا الطالب.</p>
-        </div>
-        <div class="portal-payment-history">
-          <h3>سجل الدفعات</h3>
-          <ul id="profile-payment-history"></ul>
-          <p id="profile-no-payments">لا توجد دفعات مسجلة.</p>
-        </div>
-      </section>
+      <div class="student-profile-panel" id="profile-panel-details" role="tabpanel"
+        aria-labelledby="profile-tab-details" tabindex="0" data-profile-panel="details">
+        <section class="portal-card" aria-labelledby="profile-details-title">
+          <div class="portal-card-heading profile-section-heading">
+            <h2 id="profile-details-title">البيانات الأساسية والتواصل</h2>
+            <button class="profile-section-print" type="button" data-profile-print="details"
+              aria-label="طباعة بيانات الطالب" title="طباعة بيانات الطالب">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 6V2.8h9V6m-9 8H3.2V7.2h13.6V14h-2.3m-9 0v3.2h9V14h-9Zm7-4h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <dl class="portal-details">
+            <div><dt>رقم الهاتف</dt><dd id="profile-phone"></dd></div>
+            <div><dt>منطقة الركوب</dt><dd id="profile-pickup"></dd></div>
+            <div><dt>الجامعة</dt><dd id="profile-university"></dd></div>
+            <div><dt>الكلية / التخصص</dt><dd id="profile-faculty"></dd></div>
+            <div><dt>السنة الدراسية</dt><dd id="profile-study-year"></dd></div>
+            <div><dt>رقم ولي الأمر</dt><dd id="profile-emergency-phone"></dd></div>
+            <div><dt>حالة الطالب</dt><dd id="profile-status"></dd></div>
+            <div><dt>حالة حساب البوابة</dt><dd id="profile-account-status"></dd></div>
+            <div><dt>بداية الاشتراك</dt><dd id="profile-subscription-start"></dd></div>
+            <div><dt>نهاية الاشتراك</dt><dd id="profile-subscription-end"></dd></div>
+            <div><dt>تاريخ التسجيل</dt><dd id="profile-created-at"></dd></div>
+            <div><dt>آخر تعديل</dt><dd id="profile-updated-at"></dd></div>
+            <div class="portal-detail-wide"><dt>ملاحظات</dt><dd id="profile-notes"></dd></div>
+          </dl>
+        </section>
+      </div>
 
-      <section class="portal-card" id="profile-trips" aria-labelledby="profile-trips-title">
-        <div class="portal-card-heading"><h2 id="profile-trips-title">طلبات الرحلات</h2></div>
-        <div class="profile-trips-list" id="profile-trip-requests"></div>
-        <p class="profile-no-trips" id="profile-no-trips">لا توجد طلبات رحلات لهذا الطالب.</p>
-        <p class="storage-message" id="profile-trip-error" role="alert" hidden></p>
-      </section>
+      <div class="student-profile-panel" id="profile-panel-subscriptions" role="tabpanel"
+        aria-labelledby="profile-tab-subscriptions" tabindex="0" data-profile-panel="subscriptions" hidden>
+        <section class="portal-card" aria-labelledby="profile-subscriptions-title">
+          <div class="portal-card-heading profile-section-heading">
+            <h2 id="profile-subscriptions-title">الاشتراكات والمدفوعات</h2>
+            <button class="profile-section-print" type="button" data-profile-print="subscriptions"
+              aria-label="طباعة الاشتراكات والمدفوعات" title="طباعة الاشتراكات والمدفوعات">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 6V2.8h9V6m-9 8H3.2V7.2h13.6V14h-2.3m-9 0v3.2h9V14h-9Zm7-4h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="profile-subscriptions-wrap">
+            <table class="profile-subscriptions">
+              <thead>
+                <tr><th>الترم</th><th>بداية الاشتراك</th><th>نهاية الاشتراك</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>آخر دفعة</th><th>طريقة الدفع</th><th>الحالة</th></tr>
+              </thead>
+              <tbody id="profile-subscription-rows"></tbody>
+            </table>
+            <p id="profile-no-subscriptions">لا توجد اشتراكات مسجلة لهذا الطالب.</p>
+          </div>
+          <div class="portal-payment-history">
+            <h3>سجل الدفعات</h3>
+            <ul id="profile-payment-history"></ul>
+            <p id="profile-no-payments">لا توجد دفعات مسجلة.</p>
+          </div>
+        </section>
+      </div>
     </section>
   </main>
 </body>

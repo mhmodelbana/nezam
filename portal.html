@@ -2,10 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f5f6f1">
-  <meta name="description" content="بوابة طالب Vota Travel.">
-  <title>بوابة الطالب | Vota Travel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#174b55">
+  <meta name="description" content="بوابة الطالب في {{companyName}}.">
+  <title>بوابة الطالب | {{companyName}}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,22 +16,46 @@
   <script src="supabase-api.js" defer></script>
   <script src="app.js" defer></script>
 </head>
-<body class="dashboard-page portal-page">
+<body class="dashboard-page portal-page portal-home-page">
   <header class="topbar">
-    <a class="brand" href="portal.html" aria-label="بوابة Vota Travel">
+    <a class="brand" href="portal.html" aria-label="بوابة الطالب">
       <span class="brand-mark" aria-hidden="true">v.</span>
-      <span>Vota <strong>Travel</strong></span>
+      <span data-company-name>خدمات نقل الطلاب</span>
     </a>
     <div class="date-time" aria-label="التاريخ والوقت">
       <span id="current-date"></span>
       <span class="date-time-divider" aria-hidden="true"></span>
       <time id="current-time"></time>
     </div>
-    <a class="logout-link" href="index.html">
-      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8 3.5H4.5v13H8m3-3 3.5-3.5L11 6.5M7 10h8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span>تسجيل الخروج</span>
-    </a>
+    <div class="portal-header-actions">
+      <button class="portal-notification-trigger" id="open-portal-notifications" type="button" aria-label="فتح التنبيهات" aria-haspopup="dialog" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3V2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span class="portal-notification-badge" id="portal-notification-count" hidden></span>
+      </button>
+      <a class="logout-link" href="index.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8 3.5H4.5v13H8m3-3 3.5-3.5L11 6.5M7 10h8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>تسجيل الخروج</span>
+      </a>
+    </div>
   </header>
+    <nav class="student-app-nav" aria-label="التنقل في بوابة الطالب" hidden>
+      <a href="portal.html" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m3.5 10 8.5-7 8.5 7v9.5a1 1 0 0 1-1 1h-5.3v-6.2h-4.4v6.2H4.5a1 1 0 0 1-1-1V10Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>الرئيسية</span>
+      </a>
+      <a href="portal-personal.html">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.7"/><path d="M5 20v-1.2a7 7 0 0 1 14 0V20H5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>بياناتي</span>
+      </a>
+      <a href="portal-subscription.html">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18m-14 5h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span>اشتراكي</span>
+      </a>
+      <a href="portal-trips.html">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 15.5h18l-1.8-6.2a2 2 0 0 0-1.9-1.4H6.7a2 2 0 0 0-1.9 1.4L3 15.5Zm0 0v2m18-2v2M7 17.5v1m10-1v1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="18.5" r="1.5" fill="currentColor"/><circle cx="17" cy="18.5" r="1.5" fill="currentColor"/></svg>
+        <span>الرحلات</span>
+      </a>
+    </nav>
 
   <main class="portal-content" id="student-portal" data-portal-section="home">
     <p class="portal-message" id="portal-message" role="status" hidden></p>
@@ -40,8 +64,8 @@
       <h1>أنشئ كلمة مرور جديدة</h1>
       <p>غيّر كلمة المرور المؤقتة قبل متابعة ملفك.</p>
       <form class="portal-password-form" id="portal-password-form">
-        <label class="form-field"><span>كلمة المرور الجديدة</span><input name="newPassword" type="password" minlength="10" autocomplete="new-password" required></label>
-        <label class="form-field"><span>تأكيد كلمة المرور</span><input name="confirmPassword" type="password" minlength="10" autocomplete="new-password" required></label>
+        <label class="form-field"><span>كلمة المرور الجديدة (10 أحرف على الأقل)</span><input name="newPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password" required></label>
+        <label class="form-field"><span>تأكيد كلمة المرور</span><input name="confirmPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password" required></label>
         <p class="form-error" id="portal-password-error" role="alert"></p>
         <button class="primary-button" type="submit">حفظ كلمة المرور ومتابعة</button>
       </form>
@@ -49,9 +73,17 @@
 
     <section class="portal-home" id="portal-profile" hidden>
       <div class="portal-home-heading">
-        <span class="eyebrow"><span></span> بوابة الطالب</span>
-        <h1>أهلاً بيك، <span id="portal-student-name"></span></h1>
-        <p>اختار القسم اللي تحب تتابعه.</p>
+        <div class="portal-home-welcome">
+          <img id="portal-home-student-photo" class="portal-home-student-photo" alt="صورة الطالب" hidden>
+          <span id="portal-home-photo-placeholder" class="portal-home-photo-placeholder" aria-hidden="true" hidden>
+            <img id="portal-home-photo-logo" alt="" hidden>
+            <span id="portal-home-photo-mark" class="brand-mark">v.</span>
+          </span>
+          <div class="portal-home-welcome-copy">
+            <h1>أهلاً بيك، <span id="portal-student-name"></span></h1>
+            <p>اختار القسم اللي تحب تتابعه.</p>
+          </div>
+        </div>
       </div>
       <nav class="dashboard portal-dashboard" aria-label="أقسام بوابة الطالب">
         <a class="module-card students-card" href="portal-personal.html" aria-label="بياناتي الشخصية">
@@ -59,21 +91,45 @@
             <svg viewBox="0 0 28 28" fill="none"><circle cx="10" cy="9" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 22v-1.5a6.5 6.5 0 0 1 13 0V22h-13Zm15-11.5a3.5 3.5 0 1 0 0-7m1 11a5.5 5.5 0 0 1 5 5.5V22h-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
           <span class="module-label">بياناتي الشخصية</span>
+          <span class="module-description">بياناتك ووسائل التواصل</span>
+          <span class="module-arrow" aria-hidden="true">←</span>
         </a>
         <a class="module-card subscriptions-card" href="portal-subscription.html" aria-label="اشتراكي">
           <span class="module-icon subscriptions-icon" aria-hidden="true">
             <svg viewBox="0 0 28 28" fill="none"><rect x="3.5" y="5" width="21" height="18" rx="4" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 11h21M8 17h4m-4 3h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="20" cy="17" r="2" fill="currentColor"/></svg>
           </span>
           <span class="module-label">اشتراكي</span>
+          <span class="module-description">المدفوعات وحالة الاشتراك</span>
+          <span class="module-arrow" aria-hidden="true">←</span>
         </a>
         <a class="module-card settings-card" href="portal-trips.html" aria-label="تسجيل الرحلات">
           <span class="module-icon settings-icon" aria-hidden="true">
             <svg viewBox="0 0 28 28" fill="none"><path d="M3.5 18.5h21l-2.1-7.3a2.5 2.5 0 0 0-2.4-1.8H8a2.5 2.5 0 0 0-2.4 1.8l-2.1 7.3Zm0 0v2m21-2v2M7.5 18.5v-2m13 2v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="21" r="1.5" fill="currentColor"/><circle cx="20" cy="21" r="1.5" fill="currentColor"/></svg>
           </span>
           <span class="module-label">تسجيل الرحلات</span>
+          <span class="module-description">مواعيد الذهاب والعودة</span>
+          <span class="module-arrow" aria-hidden="true">←</span>
         </a>
       </nav>
     </section>
   </main>
+  <dialog class="portal-notifications-dialog" id="portal-notifications-dialog" aria-labelledby="portal-notifications-title">
+    <section class="portal-card portal-notifications">
+      <header class="portal-card-heading portal-notifications-heading">
+        <div>
+          <span class="panel-kicker">كل جديد في حسابك</span>
+          <h2 id="portal-notifications-title">التنبيهات والتحديثات</h2>
+        </div>
+        <div class="portal-notifications-tools">
+          <button class="secondary-button" id="mark-portal-notifications-read" type="button" hidden>تحديد كمقروء</button>
+          <button class="portal-notifications-close" id="close-portal-notifications" type="button" aria-label="إغلاق التنبيهات">×</button>
+        </div>
+      </header>
+      <p class="portal-notifications-error" id="portal-notifications-error" role="status" hidden></p>
+      <p class="portal-notifications-empty" id="portal-notifications-empty" hidden>لا توجد تحديثات جديدة حاليًا.</p>
+      <ul class="portal-notification-list" id="portal-notification-list" aria-live="polite"></ul>
+      <p class="portal-notifications-more" id="portal-notifications-more" hidden></p>
+    </section>
+  </dialog>
 </body>
 </html>

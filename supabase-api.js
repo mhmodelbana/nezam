@@ -1,420 +1,550 @@
 (() => {
   const client = window.votaSupabase;
-  if (!client) {
-    throw new Error("Supabase client not initialized. Load supabase-data.js first.");
+  if (!client) throw new Error("Supabase client is not initialized.");
+
+  const defaultSettings = {
+    companyName: "خدمات نقل الطلاب",
+    companyPhone: "",
+    companyAddress: "",
+    logoDataUrl: "",
+    primaryColor: "#174b55",
+    tripLabels: { outbound: "ذهاب للجامعة", return: "عودة" },
+    pickupAreas: [],
+  };
+
+  const studentFields = [
+    "name", "phone", "pickup", "university", "faculty", "studyYear",
+    "emergencyPhone", "subscription", "termId", "notes", "archivedAt",
+    "mustChangePassword", "photoDataUrl", "createdAt", "updatedAt",
+  ];
+  const termFields = ["name", "academicYear", "priceCents", "startDate", "endDate", "createdAt", "updatedAt"];
+  const subscriptionFields = [
+    "studentId", "termId", "priceCents", "startDate", "endDate",
+    "payments", "paymentAudit", "createdAt", "updatedAt",
+  ];
+  const scheduleFields = ["direction", "time", "active", "createdAt", "updatedAt"];
+  const tripRequestFields = [
+    "studentId", "studentName", "tripType", "tripDate", "tripTime", "scheduleId",
+    "destination", "pickup", "notes", "status", "createdAt", "updatedAt",
+  ];
+  const settingsFields = [
+    "companyName", "companyPhone", "companyAddress", "logoDataUrl", "primaryColor",
+    "tripLabels", "pickupAreas", "updatedAt",
+  ];
+
+  function toModel(row) {
+    if (!row) return null;
+    return Object.fromEntries(Object.entries(row).map(([key, value]) => [
+      key.replace(/_([a-z])/g, (_, character) => character.toUpperCase()),
+      value,
+    ]));
   }
 
-  const numberOrNull = (value) => value === null || value === undefined ? null : Number(value);
-  const pageSize = 1000;
+  function toRow(record, fields) {
+    return Object.fromEntries(fields
+      .filter((field) => Object.hasOwn(record, field))
+      .map((field) => [
+        field.replace(/[A-Z]/g, (character) => `_${character.toLowerCase()}`),
+        ["startDate", "endDate"].includes(field) && record[field] === "" ? null : record[field],
+      ]));
+  }
+
+  function requireAdministrator() {
+    if (window.votaData?.role !== "admin") {
+      throw new Error("يجب تسجيل الدخول بحساب الإدارة لإجراء هذا التغيير.");
+    }
+  }
+
+  function requireStudent(studentId) {
+    if (window.votaData?.role !== "student" ||
+      Number(window.votaData.studentId) !== Number(studentId)) {
+      throw new Error("لا تملك صلاحية الوصول إلى بيانات هذا الطالب.");
+    }
+  }
 
   async function fetchAllRows(createQuery) {
     const rows = [];
+    const pageSize = 1000;
     for (let offset = 0; ; offset += pageSize) {
-      const { data, error } = await createQuery()
-        .range(offset, offset + pageSize - 1);
+      const { data, error } = await createQuery().range(offset, offset + pageSize - 1);
       if (error) throw error;
-      const page = data || [];
-      rows.push(...page);
-      if (page.length < pageSize) return rows;
+      rows.push(...data);
+      if (data.length < pageSize) return rows;
     }
   }
 
-  function studentFromRow(row, profiles = []) {
-    const profile = profiles.find((item) => Number(item.student_id) === Number(row.id));
-    return {
-      id: Number(row.id),
-      name: row.name,
-      phone: row.phone,
-      pickup: row.pickup,
-      university: row.university || "",
-      faculty: row.faculty || "",
-      studyYear: row.study_year || "",
-      emergencyPhone: row.emergency_phone || "",
-      subscription: row.subscription,
-      termId: numberOrNull(row.term_id),
-      notes: row.notes || "",
-      archivedAt: row.archived_at || undefined,
-      mustChangePassword: Boolean(row.must_change_password),
-      authUserId: profile?.user_id,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
+  async function studentProfiles(studentIds) {
+    if (!studentIds.length) return new Map();
+    const { data, error } = await client
+      .from("profiles")
+      .select("user_id, student_id")
+      .in("student_id", studentIds);
+    if (error) throw error;
+    return new Map(data.map((profile) => [Number(profile.student_id), profile.user_id]));
   }
 
-  function studentToRow(student) {
-    const row = {};
-    const fields = {
-      name: "name",
-      phone: "phone",
-      pickup: "pickup",
-      university: "university",
-      faculty: "faculty",
-      studyYear: "study_year",
-      emergencyPhone: "emergency_phone",
-      subscription: "subscription",
-      termId: "term_id",
-      notes: "notes",
-      archivedAt: "archived_at",
-      mustChangePassword: "must_change_password",
-    };
-    for (const [source, target] of Object.entries(fields)) {
-      if (Object.hasOwn(student, source)) {
-        const value = student[source];
-        row[target] = value === "" && ["university", "faculty", "studyYear", "emergencyPhone", "notes"].includes(source)
-          ? null
-          : value;
-      }
-    }
-    return row;
+  async function enrichStudent(row) {
+    const student = toModel(row);
+    const profiles = await studentProfiles([student.id]);
+    return { ...student, authUserId: profiles.get(Number(student.id)) };
   }
 
-  function termFromRow(row) {
-    return {
-      id: Number(row.id),
-      name: row.name,
-      academicYear: row.academic_year,
-      priceCents: Number(row.price_cents),
-      startDate: row.start_date,
-      endDate: row.end_date,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
+  async function enrichSubscriptions(rows) {
+    if (!rows.length) return [];
+    const [students, terms] = await Promise.all([
+      fetchAllRows(() => client.from("students").select("id, name, phone")),
+      fetchAllRows(() => client.from("terms").select("id, name, academic_year, start_date, end_date")),
+    ]);
+    const studentById = new Map(students.map((row) => [Number(row.id), toModel(row)]));
+    const termById = new Map(terms.map((row) => [Number(row.id), toModel(row)]));
+
+    return rows.map((row) => {
+      const subscription = toModel(row);
+      const student = studentById.get(Number(subscription.studentId));
+      const term = termById.get(Number(subscription.termId));
+      return {
+        ...subscription,
+        studentName: student?.name || "",
+        studentPhone: student?.phone || "",
+        termName: term?.name || "",
+        academicYear: term?.academicYear || "",
+        startDate: subscription.startDate || term?.startDate || "",
+        endDate: subscription.endDate || term?.endDate || "",
+        payments: Array.isArray(subscription.payments) ? subscription.payments : [],
+        paymentAudit: Array.isArray(subscription.paymentAudit) ? subscription.paymentAudit : [],
+      };
+    });
   }
 
-  function termToRow(term) {
-    const row = {};
-    for (const [source, target] of Object.entries({
-      name: "name",
-      academicYear: "academic_year",
-      priceCents: "price_cents",
-      startDate: "start_date",
-      endDate: "end_date",
-    })) {
-      if (Object.hasOwn(term, source)) row[target] = term[source];
-    }
-    return row;
-  }
-
-  function subscriptionFromRow(row) {
-    const student = row.students || {};
-    const term = row.terms || {};
-    return {
-      id: Number(row.id),
-      studentId: Number(row.student_id),
-      studentName: student.name || "",
-      studentPhone: student.phone || "",
-      termId: Number(row.term_id),
-      termName: term.name || "",
-      academicYear: term.academic_year || "",
-      priceCents: Number(row.price_cents),
-      startDate: row.start_date,
-      endDate: row.end_date,
-      payments: Array.isArray(row.payments) ? row.payments : [],
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
-  }
-
-  function subscriptionToRow(subscription) {
-    const row = {};
-    for (const [source, target] of Object.entries({
-      studentId: "student_id",
-      termId: "term_id",
-      startDate: "start_date",
-      endDate: "end_date",
-      priceCents: "price_cents",
-      payments: "payments",
-    })) {
-      if (Object.hasOwn(subscription, source)) row[target] = subscription[source];
-    }
-    return row;
-  }
-
-  function scheduleFromRow(row) {
-    return {
-      id: Number(row.id),
-      direction: row.direction,
-      time: row.time,
-      active: row.active,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
-  }
-
-  function requestFromRow(row) {
-    return {
-      id: Number(row.id),
-      studentId: Number(row.student_id),
-      studentName: row.student_name || row.students?.name || "",
-      tripType: row.trip_type,
-      tripDate: row.trip_date,
-      tripTime: row.trip_time,
-      scheduleId: numberOrNull(row.schedule_id),
-      destination: row.destination,
-      pickup: row.pickup || "",
-      notes: row.notes || "",
-      status: row.status,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
+  async function enrichTripRequests(rows) {
+    if (!rows.length) return [];
+    const studentIds = [...new Set(rows.map((row) => Number(row.student_id)))];
+    const { data, error } = await client
+      .from("students")
+      .select("id, name")
+      .in("id", studentIds);
+    if (error) throw error;
+    const names = new Map(data.map((row) => [Number(row.id), row.name]));
+    return rows.map((row) => {
+      const request = toModel(row);
+      return { ...request, studentName: request.studentName || names.get(Number(request.studentId)) || "" };
+    });
   }
 
   async function getStudentProfiles() {
-    return fetchAllRows(() => client.from("profiles")
+    requireAdministrator();
+    const { data, error } = await client
+      .from("profiles")
       .select("user_id, student_id")
-      .eq("role", "student")
-      .order("user_id"));
+      .eq("role", "student");
+    if (error) throw error;
+    return data;
+  }
+
+  async function getStudentNotificationState(studentId) {
+    requireStudent(studentId);
+    const { data, error } = await client
+      .from("profiles")
+      .select("notification_state")
+      .eq("user_id", window.votaData.profile.user_id)
+      .single();
+    if (error) throw error;
+    return data.notification_state || { lastSeen: 0, dismissed: [] };
+  }
+
+  async function updateStudentNotificationState(studentId, state) {
+    requireStudent(studentId);
+    if (!state || !Number.isFinite(Number(state.lastSeen)) ||
+      !Array.isArray(state.dismissed) ||
+      state.dismissed.some((id) => typeof id !== "string")) {
+      throw new Error("حالة التنبيهات غير صالحة.");
+    }
+    const { error } = await client
+      .from("profiles")
+      .update({ notification_state: {
+        lastSeen: Number(state.lastSeen),
+        dismissed: [...new Set(state.dismissed)],
+      } })
+      .eq("user_id", window.votaData.profile.user_id);
+    if (error) throw error;
   }
 
   async function getStudents() {
-    const [data, profiles] = await Promise.all([
-      fetchAllRows(() => client.from("students").select("*")
-        .order("created_at", { ascending: false }).order("id", { ascending: false })),
-      getStudentProfiles(),
-    ]);
-    return data.map((row) => studentFromRow(row, profiles));
+    const rows = await fetchAllRows(() =>
+      client.from("students").select("*").order("created_at", { ascending: false }).order("id", { ascending: false })
+    );
+    const profiles = await studentProfiles(rows.map((row) => Number(row.id)));
+    return rows.map((row) => ({
+      ...toModel(row),
+      authUserId: profiles.get(Number(row.id)),
+    }));
   }
 
   async function getStudent(id) {
-    const [{ data, error }, profiles] = await Promise.all([
-      client.from("students").select("*").eq("id", id).single(),
-      getStudentProfiles(),
-    ]);
+    const { data, error } = await client
+      .from("students")
+      .select("*")
+      .eq("id", Number(id))
+      .maybeSingle();
     if (error) throw error;
-    return studentFromRow(data, profiles);
+    return data ? enrichStudent(data) : null;
   }
 
   async function createStudent(student) {
+    requireAdministrator();
     const { data, error } = await client
       .from("students")
-      .insert({
-        ...studentToRow(student),
-        must_change_password: student.mustChangePassword ?? true,
-      })
-      .select()
+      .insert(toRow({
+        ...student,
+        mustChangePassword: student.mustChangePassword ?? true,
+      }, studentFields))
+      .select("*")
       .single();
     if (error) throw error;
-    return studentFromRow(data);
+    return enrichStudent(data);
   }
 
   async function updateStudent(id, updates) {
+    requireAdministrator();
     const { data, error } = await client
       .from("students")
-      .update(studentToRow(updates))
-      .eq("id", id)
-      .select()
+      .update(toRow(updates, studentFields))
+      .eq("id", Number(id))
+      .select("*")
       .single();
     if (error) throw error;
-    return studentFromRow(data);
+    return enrichStudent(data);
+  }
+
+  async function updateCurrentStudentProfile(updates) {
+    requireStudent(window.votaData.studentId);
+    const { data, error } = await client.rpc("student_update_profile", { p_updates: updates });
+    if (error) throw error;
+    return enrichStudent(data);
   }
 
   async function deleteStudent(id) {
-    const { error } = await client.from("students").delete().eq("id", id);
+    requireAdministrator();
+    const studentId = Number(id);
+    await window.votaData.manageStudentAuth("delete", studentId, null);
+    const { error } = await client.from("students").delete().eq("id", studentId);
     if (error) throw error;
   }
 
   async function getTerms() {
-    const data = await fetchAllRows(() => client.from("terms").select("*")
-      .order("created_at", { ascending: false }).order("id", { ascending: false }));
-    return data.map(termFromRow);
+    const rows = await fetchAllRows(() =>
+      client.from("terms").select("*").order("created_at", { ascending: false }).order("id", { ascending: false })
+    );
+    return rows.map(toModel);
   }
 
   async function getTerm(id) {
-    const { data, error } = await client.from("terms").select("*").eq("id", id).single();
+    const { data, error } = await client.from("terms").select("*").eq("id", Number(id)).maybeSingle();
     if (error) throw error;
-    return termFromRow(data);
+    return toModel(data);
   }
 
   async function createTerm(term) {
-    const { data, error } = await client.from("terms").insert(termToRow(term)).select().single();
+    requireAdministrator();
+    const { data, error } = await client.from("terms").insert(toRow(term, termFields)).select("*").single();
     if (error) throw error;
-    return termFromRow(data);
+    return toModel(data);
   }
 
   async function updateTerm(id, updates) {
+    requireAdministrator();
     const { data, error } = await client
       .from("terms")
-      .update(termToRow(updates))
-      .eq("id", id)
-      .select()
+      .update(toRow(updates, termFields))
+      .eq("id", Number(id))
+      .select("*")
       .single();
     if (error) throw error;
-    return termFromRow(data);
+    return toModel(data);
   }
 
   async function deleteTerm(id) {
-    const { error } = await client.from("terms").delete().eq("id", id);
+    requireAdministrator();
+    const { error } = await client.from("terms").delete().eq("id", Number(id));
     if (error) throw error;
   }
 
   async function getSubscriptions() {
-    const data = await fetchAllRows(() => client.from("subscriptions")
-      .select("*, students(name, phone), terms(name, academic_year)")
-      .order("created_at", { ascending: false }).order("id", { ascending: false }));
-    return data.map(subscriptionFromRow);
+    const rows = await fetchAllRows(() =>
+      client.from("subscriptions").select("*").order("created_at", { ascending: false }).order("id", { ascending: false })
+    );
+    return enrichSubscriptions(rows);
   }
 
   async function getStudentSubscriptions(studentId) {
-    const data = await fetchAllRows(() => client.from("subscriptions")
-      .select("*, students(name, phone), terms(name, academic_year)")
-      .eq("student_id", studentId)
-      .order("created_at", { ascending: false }).order("id", { ascending: false }));
-    return data.map(subscriptionFromRow);
+    requireStudent(studentId);
+    const rows = await fetchAllRows(() =>
+      client.from("subscriptions")
+        .select("*")
+        .eq("student_id", Number(studentId))
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+    );
+    return enrichSubscriptions(rows);
   }
 
   async function createSubscription(subscription) {
+    requireAdministrator();
     const { data, error } = await client
       .from("subscriptions")
-      .insert(subscriptionToRow(subscription))
-      .select("*, students(name, phone), terms(name, academic_year)")
+      .insert(toRow(subscription, subscriptionFields))
+      .select("*")
       .single();
     if (error) throw error;
-    return subscriptionFromRow(data);
+    return (await enrichSubscriptions([data]))[0];
   }
 
   async function updateSubscription(id, updates) {
+    requireAdministrator();
     const { data, error } = await client
       .from("subscriptions")
-      .update(subscriptionToRow(updates))
-      .eq("id", id)
-      .select("*, students(name, phone), terms(name, academic_year)")
+      .update(toRow(updates, subscriptionFields))
+      .eq("id", Number(id))
+      .select("*")
       .single();
     if (error) throw error;
-    return subscriptionFromRow(data);
+    return (await enrichSubscriptions([data]))[0];
   }
 
   async function addPayment(subscriptionId, payment) {
-    const { data: subscription, error: getError } = await client
-      .from("subscriptions")
-      .select("payments")
-      .eq("id", subscriptionId)
-      .single();
-    if (getError) throw getError;
-
-    const payments = [...(subscription.payments || []), payment];
-    const { data, error } = await client
-      .from("subscriptions")
-      .update({ payments })
-      .eq("id", subscriptionId)
-      .select("*, students(name, phone), terms(name, academic_year)")
-      .single();
+    requireAdministrator();
+    const { data, error } = await client.rpc("add_subscription_payment", {
+      p_subscription_id: Number(subscriptionId),
+      p_payment: payment,
+    });
     if (error) throw error;
-    return subscriptionFromRow(data);
+    return (await enrichSubscriptions([data]))[0];
   }
 
   async function deleteSubscription(id) {
-    const { error } = await client.from("subscriptions").delete().eq("id", id);
+    requireAdministrator();
+    const { error } = await client.from("subscriptions").delete().eq("id", Number(id));
     if (error) throw error;
   }
 
   async function getTripSchedules() {
-    const data = await fetchAllRows(() => client.from("trip_schedules").select("*")
-      .order("time").order("id"));
-    return data.map(scheduleFromRow);
+    const rows = await fetchAllRows(() =>
+      client.from("trip_schedules").select("*").order("time").order("id")
+    );
+    return rows.map(toModel);
   }
 
   async function createTripSchedule(schedule) {
+    requireAdministrator();
     const { data, error } = await client
       .from("trip_schedules")
-      .insert({ direction: schedule.direction, time: schedule.time, active: schedule.active !== false })
-      .select()
+      .insert(toRow(schedule, scheduleFields))
+      .select("*")
       .single();
     if (error) throw error;
-    return scheduleFromRow(data);
+    return toModel(data);
   }
 
   async function updateTripSchedule(id, updates) {
+    requireAdministrator();
     const { data, error } = await client
       .from("trip_schedules")
-      .update({ direction: updates.direction, time: updates.time, active: updates.active })
-      .eq("id", id)
-      .select()
+      .update(toRow(updates, scheduleFields))
+      .eq("id", Number(id))
+      .select("*")
       .single();
     if (error) throw error;
-    return scheduleFromRow(data);
+    return toModel(data);
   }
 
   async function deleteTripSchedule(id) {
-    const { error } = await client.from("trip_schedules").delete().eq("id", id);
+    requireAdministrator();
+    const { error } = await client.from("trip_schedules").delete().eq("id", Number(id));
     if (error) throw error;
   }
 
   async function toggleTripSchedule(id) {
-    const { data: schedule, error: getError } = await client
+    requireAdministrator();
+    const { data: schedule, error } = await client
       .from("trip_schedules")
       .select("active")
-      .eq("id", id)
+      .eq("id", Number(id))
       .single();
-    if (getError) throw getError;
+    if (error) throw error;
     return updateTripSchedule(id, { active: !schedule.active });
   }
 
+  async function getSystemSettings() {
+    const { data, error } = await client.from("system_settings").select("*").eq("id", 1).maybeSingle();
+    if (error) throw error;
+    if (!data) throw new Error("إعدادات النظام غير موجودة في قاعدة البيانات. أعد تشغيل مخطط Supabase.");
+    return {
+      ...defaultSettings,
+      ...toModel(data),
+      tripLabels: { ...defaultSettings.tripLabels, ...data.trip_labels },
+    };
+  }
+
+  async function updateSystemSettings(updates) {
+    requireAdministrator();
+    const { data, error } = await client
+      .from("system_settings")
+      .upsert({ id: 1, ...toRow(updates, settingsFields) }, { onConflict: "id" })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return {
+      ...defaultSettings,
+      ...toModel(data),
+      tripLabels: { ...defaultSettings.tripLabels, ...data.trip_labels },
+    };
+  }
+
+  async function getAdministratorLoginName() {
+    if (window.votaData.role !== "admin") {
+      throw new Error("يجب تسجيل الدخول بحساب الإدارة.");
+    }
+    const { data, error } = await client.auth.getUser();
+    if (error) throw error;
+    return data.user?.email || "";
+  }
+
+  async function changeAdministratorLoginName(currentPassword, newLoginName) {
+    return window.votaData.changeAdministratorLoginName(currentPassword, newLoginName);
+  }
+
   async function getTripRequests() {
-    const data = await fetchAllRows(() => client.from("trip_requests")
-      .select("*, students(name)")
-      .order("created_at", { ascending: false }).order("id", { ascending: false }));
-    return data.map(requestFromRow);
+    const rows = await fetchAllRows(() =>
+      client.from("trip_requests").select("*").order("created_at", { ascending: false }).order("id", { ascending: false })
+    );
+    return enrichTripRequests(rows);
   }
 
   async function getTripRequestsByDate(date) {
-    const data = await fetchAllRows(() => client.from("trip_requests")
-      .select("*, students(name)")
-      .eq("trip_date", date)
-      .in("status", ["pending", "approved"])
-      .order("trip_time").order("id"));
-    return data.map(requestFromRow);
+    const rows = await fetchAllRows(() =>
+      client.from("trip_requests")
+        .select("*")
+        .eq("trip_date", date)
+        .in("status", ["pending", "approved"])
+        .order("trip_time")
+        .order("id")
+    );
+    return enrichTripRequests(rows);
   }
 
   async function getStudentTripRequests(studentId) {
-    const data = await fetchAllRows(() => client.from("trip_requests")
-      .select("*, students(name)")
-      .eq("student_id", studentId)
-      .order("created_at", { ascending: false }).order("id", { ascending: false }));
-    return data.map(requestFromRow);
+    requireStudent(studentId);
+    const rows = await fetchAllRows(() =>
+      client.from("trip_requests")
+        .select("*")
+        .eq("student_id", Number(studentId))
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+    );
+    return enrichTripRequests(rows);
   }
 
   async function createTripRequest(request) {
+    requireAdministrator();
     const { data, error } = await client
       .from("trip_requests")
-      .insert({
-        student_id: request.studentId,
-        student_name: request.studentName,
-        trip_type: request.tripType,
-        trip_date: request.tripDate,
-        trip_time: request.tripTime,
-        schedule_id: request.scheduleId,
-        destination: request.destination,
-        pickup: request.pickup,
-        notes: request.notes || "",
-        status: request.status || "pending",
-      })
-      .select("*, students(name)")
+      .insert(toRow(request, tripRequestFields))
+      .select("*")
       .single();
     if (error) throw error;
-    return requestFromRow(data);
+    return (await enrichTripRequests([data]))[0];
   }
 
   async function updateTripRequest(id, updates) {
+    requireAdministrator();
     const { data, error } = await client
       .from("trip_requests")
-      .update({ status: updates.status })
-      .eq("id", id)
-      .select("*, students(name)")
+      .update(toRow(updates, ["status", "notes", "updatedAt"]))
+      .eq("id", Number(id))
+      .select("*")
       .single();
     if (error) throw error;
-    return requestFromRow(data);
+    return (await enrichTripRequests([data]))[0];
   }
 
   async function deleteTripRequest(id) {
-    const { error } = await client.from("trip_requests").delete().eq("id", id);
+    requireAdministrator();
+    const { error } = await client.from("trip_requests").delete().eq("id", Number(id));
     if (error) throw error;
   }
 
+  async function hasAdministrator() {
+    const { data, error } = await client.rpc("has_vota_admin");
+    if (error) throw error;
+    return Boolean(data);
+  }
+
+  async function createFirstAdministrator() {
+    throw new Error("أنشئ حساب الإدارة من لوحة Supabase ثم اربطه بجدول profiles حسب دليل الإعداد.");
+  }
+
+  async function authenticate(loginName, password) {
+    return window.votaData.signIn(loginName, password);
+  }
+
+  async function getSessionProfile() {
+    return window.votaData.profile;
+  }
+
+  async function signOut() {
+    return window.votaData.signOut();
+  }
+
+  async function manageStudentAuth(action, studentId, password) {
+    const result = await window.votaData.manageStudentAuth(action, studentId, password);
+    if (action !== "delete") {
+      await updateStudent(studentId, { mustChangePassword: true });
+    }
+    return result;
+  }
+
+  async function changeStudentPassword(studentId, password) {
+    requireStudent(studentId);
+    return window.votaData.completePasswordChange(password);
+  }
+
+  async function changeAdministratorPassword(currentPassword, newPassword) {
+    return window.votaData.changeAdministratorPassword(currentPassword, newPassword);
+  }
+
+  async function bookStudentTrip(studentId, scheduleId, tripDate) {
+    requireStudent(studentId);
+    const { error } = await client.rpc("student_trip_action", {
+      p_action: "book",
+      p_schedule_id: Number(scheduleId),
+      p_trip_date: tripDate,
+      p_request_id: null,
+    });
+    if (error) throw error;
+    return getStudentTripRequests(studentId);
+  }
+
+  async function cancelStudentTrip(studentId, requestId) {
+    requireStudent(studentId);
+    const { error } = await client.rpc("student_trip_action", {
+      p_action: "cancel",
+      p_schedule_id: null,
+      p_trip_date: null,
+      p_request_id: Number(requestId),
+    });
+    if (error) throw error;
+    return getStudentTripRequests(studentId);
+  }
+
   window.votaAPI = Object.freeze({
+    getStudentProfiles,
+    getStudentNotificationState,
+    updateStudentNotificationState,
     getStudents,
     getStudent,
     createStudent,
     updateStudent,
+    updateCurrentStudentProfile,
     deleteStudent,
     getTerms,
     getTerm,
@@ -432,11 +562,25 @@
     updateTripSchedule,
     deleteTripSchedule,
     toggleTripSchedule,
+    getSystemSettings,
+    updateSystemSettings,
+    getAdministratorLoginName,
+    changeAdministratorLoginName,
     getTripRequests,
     getTripRequestsByDate,
     getStudentTripRequests,
     createTripRequest,
     updateTripRequest,
     deleteTripRequest,
+    hasAdministrator,
+    createFirstAdministrator,
+    authenticate,
+    getSessionProfile,
+    signOut,
+    manageStudentAuth,
+    changeStudentPassword,
+    changeAdministratorPassword,
+    bookStudentTrip,
+    cancelStudentTrip,
   });
 })();

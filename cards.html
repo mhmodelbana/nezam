@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f6f1">
+  <meta name="description" content="معاينة وطباعة كارنيهات الطلاب في {{companyName}}.">
+  <title>كارنيهات الطلاب | {{companyName}}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="supabase-data.js" defer></script>
+  <script src="supabase-api.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body class="cards-page">
+  <header class="topbar">
+    <a class="brand" href="dashboard.html" aria-label="العودة للوحة التحكم">
+      <span class="brand-mark" aria-hidden="true">v.</span>
+      <span data-company-name>خدمات نقل الطلاب</span>
+    </a>
+    <div class="date-time" aria-label="التاريخ والوقت">
+      <span id="current-date"></span><span class="date-time-divider" aria-hidden="true"></span>
+      <time id="current-time"></time>
+    </div>
+    <a class="logout-link" href="index.html">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8 3.5H4.5v13H8m3-3 3.5-3.5L11 6.5M7 10h8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>تسجيل الخروج</span>
+    </a>
+  </header>
+
+  <nav class="dashboard-section-nav" aria-label="أقسام لوحة التحكم">
+    <div class="dashboard-section-nav-inner">
+      <a class="dashboard-nav-link" href="dashboard.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m2.5 9 7.5-6 7.5 6v7.5a1 1 0 0 1-1 1h-4.8v-5h-3.4v5H3.5a1 1 0 0 1-1-1V9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الرئيسية
+      </a>
+      <a class="dashboard-nav-link" href="students.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="7.5" cy="6.5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 16v-1a5 5 0 0 1 10 0v1h-10Zm11-6.5a2.8 2.8 0 1 0 0-5.6m1 8.1a4.4 4.4 0 0 1 3.8 4h-2.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الطلاب
+      </a>
+      <a class="dashboard-nav-link" href="subscriptions.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 8h15m-11 4h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        الاشتراكات
+      </a>
+      <a class="dashboard-nav-link is-current" href="cards.html" aria-current="page">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="9" r="1.7" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 13.5a2.6 2.6 0 0 1 5 0m3-4h2.5m-2.5 3h2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        الكارنيهات
+      </a>
+      <a class="dashboard-nav-link" href="trips.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2 13h16l-1.6-5.2a2 2 0 0 0-1.9-1.4H5.5a2 2 0 0 0-1.9 1.4L2 13Zm0 0v1.5m16-1.5v1.5M5 13v1.5m10-1.5v1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15" cy="15.5" r="1.2" fill="currentColor"/></svg>
+        الرحلات
+      </a>
+      <a class="dashboard-nav-link" href="reports.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 16.5h14M5.5 13V9m4.5 4V4m4.5 9V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        التقارير
+      </a>
+      <a class="dashboard-nav-link" href="settings.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/><path d="m16.2 12.5 1 .8-1.5 2.6-1.3-.5a6.8 6.8 0 0 1-1.3.8l-.2 1.3h-3l-.2-1.3a6.8 6.8 0 0 1-1.3-.8l-1.3.5-1.5-2.6 1-.8a6.8 6.8 0 0 1 0-1.5l-1-.8 1.5-2.6 1.3.5a6.8 6.8 0 0 1 1.3-.8l.2-1.3h3l.2 1.3a6.8 6.8 0 0 1 1.3.8l1.3-.5 1.5 2.6-1 .8a6.8 6.8 0 0 1 0 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الإعدادات
+      </a>
+    </div>
+  </nav>
+
+  <main class="subscriptions-content cards-content">
+    <a class="back-link" href="dashboard.html">لوحة التحكم</a>
+    <section class="page-heading">
+      <div>
+        <h1>كارنيهات الطلاب</h1>
+        <p>ابحث وفلتر الطلاب، وعاين الوجهين قبل طباعة الكارنيه المحدد أو النتائج الظاهرة.</p>
+      </div>
+        <div class="cards-heading-actions">
+          <button class="secondary-button" id="print-visible-cards" type="button" disabled>طباعة النتائج الظاهرة</button>
+          <button class="secondary-button cards-settings-button" id="open-card-settings" type="button" aria-haspopup="dialog" aria-controls="cards-settings-dialog">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" stroke="currentColor" stroke-width="1.5"/><path d="m16 11.5 1 .8-1.3 2.2-1.2-.5a6 6 0 0 1-1.3.8l-.2 1.2h-2.6l-.2-1.2a6 6 0 0 1-1.3-.8l-1.2.5-1.3-2.2 1-.8a5.8 5.8 0 0 1 0-1.5l-1-.8 1.3-2.2 1.2.5a6 6 0 0 1 1.3-.8l.2-1.2h2.6l.2 1.2a6 6 0 0 1 1.3.8l1.2-.5 1.3 2.2-1 .8a5.8 5.8 0 0 1 0 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+            إعدادات الطباعة
+          </button>
+          <button class="primary-button" id="print-selected-cards" type="button" disabled>
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 6V2.8h9V6m-9 8H3.2V7.2h13.6V14h-2.3m-9 0v3.2h9V14h-9Zm7-4h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            طباعة المحدد
+          </button>
+        </div>
+    </section>
+
+    <dialog class="cards-settings-dialog" id="cards-settings-dialog" aria-labelledby="cards-settings-title">
+        <div class="cards-settings-heading">
+          <div>
+            <h2 id="cards-settings-title">إعدادات الطباعة</h2>
+          </div>
+          <button class="cards-settings-close" id="close-card-settings" type="button" aria-label="إغلاق إعدادات الطباعة">×</button>
+        </div>
+        <section class="cards-settings-section" aria-labelledby="cards-layout-settings-title">
+          <h3 id="cards-layout-settings-title">تخطيط الطباعة ومقاس الكارنيه</h3>
+          <div class="cards-print-settings">
+            <div class="cards-setting-field">
+              <label for="cards-print-layout">تخطيط الطباعة</label>
+              <select id="cards-print-layout">
+                <option value="sheet">ورقة A4 - عدة كارنيهات</option>
+                <option value="single">كارنيه واحد في كل صفحة</option>
+              </select>
+            </div>
+            <div class="cards-setting-field">
+              <label for="cards-print-size">مقاس الكارنيه</label>
+              <select id="cards-print-size">
+                <option value="standard">قياسي - 85.6 × 54 مم</option>
+                <option value="compact">متوسط - 76 × 48 مم</option>
+                <option value="small">صغير - 70 × 44 مم</option>
+              </select>
+            </div>
+          </div>
+        </section>
+        <section class="cards-settings-section" aria-labelledby="cards-content-settings-title">
+          <h3 id="cards-content-settings-title">محتوى الوجه الأمامي</h3>
+          <fieldset class="cards-display-options">
+            <legend>إظهار أو إخفاء البيانات</legend>
+            <label><input id="show-term" type="checkbox" checked> الترم</label>
+            <label><input id="show-price" type="checkbox" checked> قيمة الاشتراك</label>
+            <label><input id="show-qr" type="checkbox" checked> QR بكود الطالب</label>
+          </fieldset>
+        </section>
+        <section class="cards-settings-section cards-settings-print-note" aria-labelledby="cards-duplex-settings-title">
+          <h3 id="cards-duplex-settings-title">الطباعة على الوجهين</h3>
+          <p class="cards-print-duplex-note">فعّل الطباعة المزدوجة من نافذة الطابعة واختر القلب على الحافة الطويلة.</p>
+        </section>
+    </dialog>
+
+    <section class="cards-browser" aria-label="بحث في كارنيهات الطلاب">
+      <label class="cards-search">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" stroke-width="1.6"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span class="visually-hidden">بحث عن طالب</span>
+        <input id="cards-search" type="search" placeholder="ابحث باسم الطالب أو الكلية أو الجامعة أو البلد..." autocomplete="off">
+      </label>
+      <div class="cards-filter-fields">
+        <label class="cards-filter">
+          <span>الجامعة</span>
+          <select id="cards-university-filter"><option value="">كل الجامعات</option></select>
+        </label>
+        <label class="cards-filter">
+          <span>الكلية</span>
+          <select id="cards-faculty-filter"><option value="">كل الكليات</option></select>
+        </label>
+        <label class="cards-filter">
+          <span>البلد</span>
+          <select id="cards-country-filter"><option value="">كل البلاد</option></select>
+        </label>
+        <label class="cards-filter">
+          <span>الترم</span>
+          <select id="cards-term-filter"><option value="">كل الترمات</option></select>
+        </label>
+      </div>
+      <div class="cards-browser-footer">
+        <label class="cards-select-visible">
+          <input id="select-visible-cards" type="checkbox">
+          <span>تحديد النتائج الظاهرة</span>
+        </label>
+        <button class="cards-clear-filters" id="clear-card-filters" type="button" hidden>مسح الفلاتر</button>
+        <p id="cards-count" aria-live="polite"></p>
+        <button class="cards-clear-selection" id="clear-card-selection" type="button" hidden>إلغاء التحديد</button>
+      </div>
+    </section>
+
+    <p class="storage-message" id="cards-error" role="alert" hidden></p>
+    <div class="student-cards-grid" id="student-cards-grid"></div>
+    <div class="student-cards-grid student-cards-back-print-grid" id="student-cards-back-print-grid" aria-hidden="true"></div>
+    <div class="cards-empty" id="cards-empty" hidden>
+      <strong id="cards-empty-title">لا توجد كارنيهات مطابقة</strong>
+      <p id="cards-empty-description">غيّر عبارة البحث لعرض الطلاب.</p>
+    </div>
+  </main>
+</body>
+</html>

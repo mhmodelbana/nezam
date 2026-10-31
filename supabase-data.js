@@ -1,47 +1,34 @@
 (() => {
-  const client = window.supabase?.createClient(
-    window.VOTA_SUPABASE_CONFIG?.url,
-    window.VOTA_SUPABASE_CONFIG?.publishableKey,
-    {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true,
-      },
-    }
-  );
+  const config = window.VOTA_SUPABASE_CONFIG;
+  const client = window.supabase?.createClient(config?.url, config?.publishableKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  });
+
   if (!client) {
-    throw new Error("Supabase SDK or public project configuration is unavailable.");
+    throw new Error("تعذر تهيئة اتصال Supabase. تحقق من رابط المشروع والمفتاح العام.");
   }
 
   window.votaSupabase = client;
 
-  let currentRole = null;
   let currentProfile = null;
-  let currentUserId = null;
 
-  function createSyncMessage() {
-    let syncMessage = document.querySelector(".supabase-sync-message");
-    if (syncMessage) return syncMessage;
-    syncMessage = document.createElement("p");
-    syncMessage.className = "supabase-sync-message";
-    syncMessage.setAttribute("role", "status");
-    syncMessage.setAttribute("aria-live", "polite");
-    syncMessage.hidden = true;
-    document.body.append(syncMessage);
-    return syncMessage;
-  }
-
-  function showSyncMessage(text, isError = false) {
-    const message = createSyncMessage();
+  function showError(text) {
+    let message = document.querySelector(".local-storage-message");
+    if (!message) {
+      message = document.createElement("p");
+      message.className = "local-storage-message";
+      message.setAttribute("role", "status");
+      message.setAttribute("aria-live", "polite");
+      message.hidden = true;
+      document.body.append(message);
+    }
     message.textContent = text;
-    message.classList.toggle("is-error", isError);
+    message.classList.add("is-error");
     message.hidden = false;
-  }
-
-  function hideSyncMessage() {
-    const syncMessage = document.querySelector(".supabase-sync-message");
-    if (syncMessage) syncMessage.hidden = true;
   }
 
   async function loadProfile(userId) {
@@ -51,36 +38,72 @@
       .eq("user_id", userId)
       .maybeSingle();
     if (error) throw error;
-    if (!data) throw new Error("No Vota Travel role is assigned to this account.");
+    if (!data) throw new Error("لا توجد صلاحية مرتبطة بهذا الحساب. تواصل مع الإدارة.");
     return data;
   }
 
-  function redirectForRole(role) {
-    if (role === "admin") window.location.replace("dashboard.html");
-    else if (role === "student") window.location.replace("portal.html");
-  }
-
   async function initialize() {
-    const { data: { session }, error } = await client.auth.getSession();
+    const { data, error } = await client.auth.getSession();
     if (error) throw error;
-
-    if (!session) {
-      currentRole = null;
+    if (!data.session) {
       currentProfile = null;
-      currentUserId = null;
       return false;
     }
+    try {
+      currentProfile = await loadProfile(data.session.user.id);
+    } catch (profileError) {
+      await client.auth.signOut();
+      currentProfile = null;
+      throw profileError;
+    }
+    return Boolean(currentProfile);
+  }
 
-    currentUserId = session.user.id;
-    currentProfile = await loadProfile(currentUserId);
-    currentRole = currentProfile.role;
+  function loginEmail(loginName) {
+    const normalized = String(loginName || "").trim();
+    const studentCode = /^vt-(\d+)$/i.exec(normalized);
+    if (!studentCode) return normalized;
+    const studentId = Number(studentCode[1]);
+    if (!Number.isSafeInteger(studentId) || studentId < 1) return normalized;
+    return `student-${studentId}@students.votatravel.com`;
+  }
 
-    return true;
+  async function signIn(loginName, password) {
+    const { data, error } = await client.auth.signInWithPassword({
+      email: loginEmail(loginName),
+      password,
+    });
+    if (error) {
+      if (error.code === "invalid_credentials" || error.status === 400) return null;
+      throw error;
+    }
+    try {
+      currentProfile = await loadProfile(data.user.id);
+    } catch (profileError) {
+      await client.auth.signOut();
+      currentProfile = null;
+      throw profileError;
+    }
+
+    if (currentProfile.role === "student") {
+      const student = await window.votaAPI.getStudent(currentProfile.student_id);
+      if (!student || student.archivedAt) {
+        await signOut();
+        return null;
+      }
+    }
+    return currentProfile;
+  }
+
+  async function signOut() {
+    const { error } = await client.auth.signOut();
+    if (error) throw error;
+    currentProfile = null;
   }
 
   async function refreshStudentState() {
-    if (!currentProfile || currentProfile.role !== "student" || !currentProfile.student_id) {
-      throw new Error("No active student session");
+    if (currentProfile?.role !== "student" || !currentProfile.student_id) {
+      throw new Error("لا توجد جلسة طالب نشطة.");
     }
 
     const studentId = currentProfile.student_id;
@@ -91,7 +114,7 @@
       window.votaAPI.getTripSchedules(),
       window.votaAPI.getTerms(),
     ]);
-    if (!student || student.archivedAt) throw new Error("Student record is unavailable");
+    if (!student || student.archivedAt) throw new Error("ملف الطالب غير متاح.");
     return {
       student,
       subscriptions,
@@ -101,61 +124,107 @@
     };
   }
 
-  async function updateStudentTrip(action, scheduleId, tripDate, requestId) {
-    if (!currentProfile || currentProfile.role !== "student" || !currentProfile.student_id) {
-      throw new Error("No active student session");
-    }
-
-    const { error } = await client.rpc("student_trip_action", {
-      p_action: action,
-      p_schedule_id: scheduleId,
-      p_trip_date: tripDate,
-      p_request_id: requestId,
-    });
-    if (error) throw error;
-    return window.votaAPI.getStudentTripRequests(currentProfile.student_id);
-  }
-
   async function completePasswordChange(password) {
+    if (currentProfile?.role !== "student") {
+      throw new Error("يجب تسجيل الدخول بحساب الطالب لتغيير كلمة المرور.");
+    }
     const { error: passwordError } = await client.auth.updateUser({ password });
     if (passwordError) throw passwordError;
-
-    if (!currentProfile || currentProfile.role !== "student" || !currentProfile.student_id) {
-      throw new Error("No active student session");
-    }
-
-    const { error: profileError } = await client.rpc("student_complete_password_change");
-    if (profileError) throw profileError;
-
+    const { error } = await client.rpc("student_complete_password_change");
+    if (error) throw error;
     return refreshStudentState();
   }
 
+  async function changeAdministratorPassword(currentPassword, newPassword) {
+    if (currentProfile?.role !== "admin") {
+      throw new Error("يجب تسجيل الدخول بحساب الإدارة لتغيير كلمة المرور.");
+    }
+    const { data: userData, error: userError } = await client.auth.getUser();
+    if (userError) throw userError;
+    if (!userData.user?.email) throw new Error("تعذر تحديد بريد حساب الإدارة.");
+
+    const { error: verifyError } = await client.auth.signInWithPassword({
+      email: userData.user.email,
+      password: currentPassword,
+    });
+    if (verifyError) throw new Error("كلمة المرور الحالية غير صحيحة.");
+
+    const { error } = await client.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+  }
+
+  async function changeAdministratorLoginName(currentPassword, newEmail) {
+    if (currentProfile?.role !== "admin") {
+      throw new Error("يجب تسجيل الدخول بحساب الإدارة لتعديل البريد الإلكتروني.");
+    }
+    const email = String(newEmail || "").trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new Error("أدخل بريدًا إلكترونيًا صحيحًا.");
+    }
+    const { data: userData, error: userError } = await client.auth.getUser();
+    if (userError) throw userError;
+    if (!userData.user?.email) throw new Error("تعذر تحديد بريد حساب الإدارة.");
+
+    const { error: verifyError } = await client.auth.signInWithPassword({
+      email: userData.user.email,
+      password: currentPassword,
+    });
+    if (verifyError) throw new Error("كلمة المرور الحالية غير صحيحة.");
+
+    const { error } = await client.auth.updateUser({ email });
+    if (error) throw error;
+    return email;
+  }
+
   async function manageStudentAuth(action, studentId, password) {
+    if (currentProfile?.role !== "admin") {
+      throw new Error("يجب تسجيل الدخول بحساب الإدارة لإدارة حسابات الطلاب.");
+    }
     const { data, error } = await client.functions.invoke("manage-student-auth", {
       body: { action, studentId, password },
     });
     if (error) throw error;
-    if (!data?.userId) throw new Error("Student authentication setup returned no user ID.");
+    if (action !== "delete" && !data?.userId) {
+      throw new Error("تعذر ربط حساب الطالب بقاعدة البيانات.");
+    }
     return data;
+  }
+
+  async function bookStudentTrip(scheduleId, tripDate) {
+    if (currentProfile?.role !== "student" || !currentProfile.student_id) {
+      throw new Error("لا توجد جلسة طالب نشطة.");
+    }
+    return window.votaAPI.bookStudentTrip(currentProfile.student_id, scheduleId, tripDate);
+  }
+
+  async function cancelStudentTrip(requestId) {
+    if (currentProfile?.role !== "student" || !currentProfile.student_id) {
+      throw new Error("لا توجد جلسة طالب نشطة.");
+    }
+    return window.votaAPI.cancelStudentTrip(currentProfile.student_id, requestId);
   }
 
   window.votaData = Object.freeze({
     initialize,
     refreshStudentState,
-    updateStudentTrip,
+    hasAdministrator: () => window.votaAPI.hasAdministrator(),
+    signIn,
+    signOut,
+    bookStudentTrip,
+    cancelStudentTrip,
     completePasswordChange,
+    changeAdministratorPassword,
+    changeAdministratorLoginName,
     manageStudentAuth,
     get profile() {
       return currentProfile;
     },
     get role() {
-      return currentRole;
+      return currentProfile?.role || null;
     },
     get studentId() {
       return currentProfile?.student_id;
     },
-    showError(message) {
-      showSyncMessage(message, true);
-    },
+    showError,
   });
 })();

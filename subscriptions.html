@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f5f6f1">
-  <meta name="description" content="متابعة اشتراكات طلاب Vota Travel وتحصيل المدفوعات.">
-  <title>الاشتراكات | Vota Travel</title>
+  <meta name="description" content="متابعة اشتراكات الطلاب وتحصيل المدفوعات في {{companyName}}.">
+  <title>الاشتراكات | {{companyName}}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,9 +18,9 @@
 </head>
 <body class="subscriptions-page">
   <header class="topbar">
-    <a class="brand" href="dashboard.html" aria-label="العودة للوحة تحكم Vota Travel">
+    <a class="brand" href="dashboard.html" aria-label="العودة للوحة التحكم">
       <span class="brand-mark" aria-hidden="true">v.</span>
-      <span>Vota <strong>Travel</strong></span>
+      <span data-company-name>خدمات نقل الطلاب</span>
     </a>
     <div class="date-time" aria-label="التاريخ والوقت">
       <span id="current-date"></span>
@@ -33,6 +33,39 @@
     </a>
   </header>
 
+  <nav class="dashboard-section-nav" aria-label="أقسام لوحة التحكم">
+    <div class="dashboard-section-nav-inner">
+      <a class="dashboard-nav-link" href="dashboard.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m2.5 9 7.5-6 7.5 6v7.5a1 1 0 0 1-1 1h-4.8v-5h-3.4v5H3.5a1 1 0 0 1-1-1V9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الرئيسية
+      </a>
+      <a class="dashboard-nav-link" href="students.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="7.5" cy="6.5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 16v-1a5 5 0 0 1 10 0v1h-10Zm11-6.5a2.8 2.8 0 1 0 0-5.6m1 8.1a4.4 4.4 0 0 1 3.8 4h-2.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الطلاب
+      </a>
+      <a class="dashboard-nav-link is-current" href="subscriptions.html" aria-current="page">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 8h15m-11 4h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        الاشتراكات
+      </a>
+      <a class="dashboard-nav-link" href="cards.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="9" r="1.7" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 13.5a2.6 2.6 0 0 1 5 0m3-4h2.5m-2.5 3h2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        الكارنيهات
+      </a>
+      <a class="dashboard-nav-link" href="trips.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2 13h16l-1.6-5.2a2 2 0 0 0-1.9-1.4H5.5a2 2 0 0 0-1.9 1.4L2 13Zm0 0v1.5m16-1.5v1.5M5 13v1.5m10-1.5v1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15" cy="15.5" r="1.2" fill="currentColor"/></svg>
+        الرحلات
+      </a>
+      <a class="dashboard-nav-link" href="reports.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 16.5h14M5.5 13V9m4.5 4V4m4.5 9V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        التقارير
+      </a>
+      <a class="dashboard-nav-link" href="settings.html">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/><path d="m16.2 12.5 1 .8-1.5 2.6-1.3-.5a6.8 6.8 0 0 1-1.3.8l-.2 1.3h-3l-.2-1.3a6.8 6.8 0 0 1-1.3-.8l-1.3.5-1.5-2.6 1-.8a6.8 6.8 0 0 1 0-1.5l-1-.8 1.5-2.6 1.3.5a6.8 6.8 0 0 1 1.3-.8l.2-1.3h3l.2 1.3a6.8 6.8 0 0 1 1.3.8l1.3-.5 1.5 2.6-1 .8a6.8 6.8 0 0 1 0 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        الإعدادات
+      </a>
+    </div>
+  </nav>
+
   <main class="subscriptions-content">
     <a class="back-link" href="dashboard.html">
       <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M15.5 10h-11m0 0 4.5-4.5M4.5 10 9 14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -41,7 +74,6 @@
 
     <section class="page-heading">
       <div>
-        <span class="eyebrow"><span></span> إدارة الخدمة</span>
         <h1>الاشتراكات</h1>
         <p>تابع اشتراكات الطلاب وسجّل الدفعات وتعرّف على المبالغ المتبقية.</p>
       </div>
@@ -72,14 +104,41 @@
     <section class="subscription-panel subscriptions-table-panel" aria-labelledby="subscriptions-list-title">
       <div class="subscription-panel-heading table-panel-heading">
         <div>
-          <span class="panel-kicker">المتابعة والتحصيل</span>
           <h2 id="subscriptions-list-title">اشتراكات الطلاب</h2>
         </div>
-        <label class="subscription-search">
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" stroke-width="1.6"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <span class="visually-hidden">البحث في الاشتراكات</span>
-          <input id="subscription-search" type="search" placeholder="ابحث باسم الطالب أو الترم..." autocomplete="off">
-        </label>
+        <div class="subscription-tools">
+          <label class="subscription-search">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" stroke-width="1.6"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <span class="visually-hidden">البحث في الاشتراكات</span>
+            <input id="subscription-search" type="search" placeholder="ابحث باسم الطالب أو الترم..." autocomplete="off">
+          </label>
+          <label class="subscription-filter">
+            <span>الترم</span>
+            <select id="subscription-term-filter"><option value="">كل الترمات</option></select>
+          </label>
+          <label class="subscription-filter">
+            <span>حالة السداد</span>
+            <select id="subscription-status-filter">
+              <option value="">كل الحالات</option>
+              <option value="unpaid">غير مدفوع</option>
+              <option value="partial">مدفوع جزئيًا</option>
+              <option value="paid">مدفوع بالكامل</option>
+              <option value="overdue">متأخر</option>
+            </select>
+          </label>
+          <label class="subscription-filter">
+            <span>ترتيب حسب</span>
+            <select id="subscription-sort">
+              <option value="newest">الأحدث</option>
+              <option value="remaining">المتبقي الأكبر</option>
+              <option value="expiry">الأقرب لانتهاء الاشتراك</option>
+            </select>
+          </label>
+          <div class="subscription-report-actions">
+            <button class="secondary-button" id="export-subscriptions" type="button">تصدير CSV</button>
+            <button class="secondary-button" id="print-subscriptions-report" type="button">طباعة التقرير</button>
+          </div>
+        </div>
       </div>
       <div class="subscriptions-table-wrap">
         <table class="subscriptions-table" id="subscriptions-table">
@@ -93,6 +152,7 @@
               <th scope="col">المدفوع</th>
               <th scope="col">المتبقي</th>
               <th scope="col">حالة السداد</th>
+              <th scope="col"><span class="visually-hidden">تذكير</span></th>
               <th scope="col"><span class="visually-hidden">إجراءات</span></th>
             </tr>
           </thead>
@@ -108,19 +168,20 @@
       </div>
       <p class="subscription-error storage-error" id="subscriptions-storage-error" role="alert" hidden></p>
     </section>
+    <section class="subscriptions-report" id="subscriptions-report" aria-label="تقرير الاشتراكات" hidden></section>
   </main>
 
   <dialog class="payment-dialog" id="payment-dialog" aria-labelledby="payment-dialog-title">
     <form class="payment-form" id="payment-form">
       <div class="dialog-heading">
         <div>
-          <span class="panel-kicker">تحديث الحساب</span>
           <h2 id="payment-dialog-title">تسجيل دفعة</h2>
         </div>
         <button class="icon-button" id="close-payment-dialog" type="button" aria-label="إغلاق">×</button>
       </div>
       <p class="payment-context" id="payment-context"></p>
       <div class="payment-history" id="payment-history"></div>
+      <section class="payment-audit" id="payment-audit" aria-label="سجل تعديلات الدفعات"></section>
       <label class="subscription-field">
         <span>مبلغ الدفعة <b>*</b></span>
         <span class="currency-input"><input name="amount" type="number" min="0.01" step="0.01" required placeholder="0.00"><span>ج.م</span></span>
