@@ -137,7 +137,10 @@
   async function enrichTripRequests(rows, { skipStudentLookup = false } = {}) {
     if (!rows.length) return [];
     if (skipStudentLookup) return rows.map(toModel);
-    const studentIds = [...new Set(rows.map((row) => Number(row.student_id)))];
+    const studentIds = [...new Set(rows
+      .filter((row) => !row.student_name)
+      .map((row) => Number(row.student_id)))];
+    if (!studentIds.length) return rows.map(toModel);
     const { data, error } = await client
       .from("students")
       .select("id, name")
@@ -188,11 +191,14 @@
     if (error) throw error;
   }
 
-  async function getStudents() {
+  async function getStudents({ includePhotos = false, includeAuthUserIds = false } = {}) {
+    const columns = includePhotos
+      ? "*"
+      : "id, name, phone, pickup, university, faculty, study_year, emergency_phone, subscription, term_id, notes, archived_at, must_change_password, created_at, updated_at";
     const rows = await fetchAllRows(() =>
-      client.from("students").select("*").order("created_at", { ascending: false }).order("id", { ascending: false })
+      client.from("students").select(columns).order("created_at", { ascending: false }).order("id", { ascending: false })
     );
-    const profiles = window.votaData?.role === "admin"
+    const profiles = includeAuthUserIds && window.votaData?.role === "admin"
       ? await studentProfiles(rows.map((row) => Number(row.id)))
       : new Map();
     return rows.map((row) => ({

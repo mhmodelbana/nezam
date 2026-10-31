@@ -135,6 +135,15 @@ create unique index if not exists idx_trip_schedules_direction_time
 create unique index if not exists idx_trip_requests_one_active_direction_per_day
   on public.trip_requests(student_id, trip_date, trip_type)
   where status in ('pending', 'approved');
+create index if not exists idx_subscriptions_student_created
+  on public.subscriptions(student_id, created_at desc, id desc);
+create index if not exists idx_trip_requests_student_created
+  on public.trip_requests(student_id, created_at desc, id desc);
+create index if not exists idx_trip_requests_date_active_time
+  on public.trip_requests(trip_date, trip_time, id)
+  where status in ('pending', 'approved');
+create index if not exists idx_trip_requests_created
+  on public.trip_requests(created_at desc, id desc);
 
 insert into public.system_settings (id)
 values (1)

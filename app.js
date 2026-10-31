@@ -435,8 +435,8 @@ function generateTemporaryPassword() {
   return password.join("");
 }
 
-async function readStudentRecords() {
-  return await window.votaAPI.getStudents();
+async function readStudentRecords(options = { includePhotos: true }) {
+  return await window.votaAPI.getStudents(options);
 }
 
 function isTripRequest(record) {
@@ -473,10 +473,6 @@ function isTripRequest(record) {
       Number.isSafeInteger(record.scheduleId) && record.scheduleId > 0) &&
     ["pending", "approved", "rejected", "cancelled"].includes(record.status)
   );
-}
-
-async function readTripRequests() {
-  return await window.votaAPI.getTripRequests();
 }
 
 function initializeTripScheduleManager() {
@@ -708,15 +704,13 @@ function initializeTripAdmin() {
 
   async function render() {
     try {
-      const students = await readStudentRecords();
-      const requests = await readTripRequests();
-      const schedules = await readTripSchedules();
-      const studentById = new Map(students.map((student) => [student.id, student]));
       const selectedDate = dateInput.value;
-      const dateRequests = requests.filter((request) => request.tripDate === selectedDate);
-      const activeRequests = dateRequests.filter((request) =>
-        ["pending", "approved"].includes(request.status)
-      );
+      const [students, activeRequests, schedules] = await Promise.all([
+        readStudentRecords({ includePhotos: false }),
+        window.votaAPI.getTripRequestsByDate(selectedDate),
+        readTripSchedules(),
+      ]);
+      const studentById = new Map(students.map((student) => [student.id, student]));
       const outboundRequests = activeRequests.filter((request) => request.tripType === "outbound");
       const returnRequests = activeRequests.filter((request) => request.tripType === "return");
 
@@ -2325,10 +2319,13 @@ async function initializeStudents() {
       }
 
       const canvas = document.createElement("canvas");
-      canvas.width = Math.round(sourceWidth);
-      canvas.height = Math.round(sourceHeight);
+      const scale = Math.min(1, 680 / sourceWidth, 880 / sourceHeight);
+      canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+      canvas.height = Math.max(1, Math.round(sourceHeight * scale));
       const context = canvas.getContext("2d");
       if (!context) throw new Error("تعذر تجهيز الصورة للحفظ.");
+      context.fillStyle = "#fff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
       context.drawImage(
         image,
         sourceX,
@@ -2340,10 +2337,11 @@ async function initializeStudents() {
         canvas.width,
         canvas.height
       );
-      const croppedPhoto = canvas.toDataURL("image/png");
-      return croppedPhoto.length <= studentPhotoMaxDataUrlLength
-        ? croppedPhoto
-        : await readFile();
+      const croppedPhoto = canvas.toDataURL("image/jpeg", 0.82);
+      if (croppedPhoto.length > studentPhotoMaxDataUrlLength) {
+        throw new Error("تعذر ضغط الصورة للحجم المناسب. اختر صورة أصغر.");
+      }
+      return croppedPhoto;
     } finally {
       URL.revokeObjectURL(objectUrl);
     }
@@ -2428,7 +2426,7 @@ async function initializeStudents() {
   async function loadStudents() {
     try {
       [students, terms, subscriptions] = await Promise.all([
-        window.votaAPI.getStudents(),
+        window.votaAPI.getStudents({ includePhotos: true, includeAuthUserIds: true }),
         window.votaAPI.getTerms(),
         window.votaAPI.getSubscriptions(),
       ]);
@@ -3074,7 +3072,7 @@ async function initializeStudents() {
       mustChangePassword: true,
       updatedAt: new Date().toISOString(),
     });
-    students = await window.votaAPI.getStudents();
+    students = await window.votaAPI.getStudents({ includePhotos: true, includeAuthUserIds: true });
     renderStudents();
     showCredentials(student.id, temporaryPassword);
   }
@@ -3574,7 +3572,7 @@ async function initializeStudents() {
         newStudent.id,
         temporaryPassword
       );
-      students = await window.votaAPI.getStudents();
+      students = await window.votaAPI.getStudents({ includePhotos: true, includeAuthUserIds: true });
       const linkedStudent = students.find((student) => student.id === newStudent.id);
       if (!linkedStudent || linkedStudent.authUserId !== account.userId) {
         throw new Error("Student Auth account was created but the profile link could not be loaded.");
@@ -5284,7 +5282,7 @@ async function initializeStudentCards() {
 
   try {
     const [students, subscriptions, terms] = await Promise.all([
-      window.votaAPI.getStudents(),
+      window.votaAPI.getStudents({ includePhotos: true }),
       window.votaAPI.getSubscriptions(),
       window.votaAPI.getTerms(),
     ]);
@@ -5927,7 +5925,7 @@ async function initializeReports() {
 
   try {
     [students, subscriptions, tripRequests] = await Promise.all([
-      window.votaAPI.getStudents(),
+      window.votaAPI.getStudents({ includePhotos: false }),
       window.votaAPI.getSubscriptions(),
       window.votaAPI.getTripRequests(),
     ]);
