@@ -320,7 +320,8 @@ begin
 end;
 $$;
 
-create or replace function public.student_trip_action(
+drop function if exists public.student_trip_action(text, bigint, date, bigint);
+create function public.student_trip_action(
   p_action text,
   p_schedule_id bigint default null,
   p_trip_date date default null,
