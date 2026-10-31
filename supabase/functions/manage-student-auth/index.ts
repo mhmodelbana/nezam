@@ -28,7 +28,7 @@ Deno.serve(async (request: Request) => {
 
   const projectUrl = Deno.env.get("SUPABASE_URL");
   const publishableKey =
-    Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY");
+    Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
   const secretKey =
     Deno.env.get("SUPABASE_SECRET_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!projectUrl || !publishableKey || !secretKey) {
@@ -42,6 +42,7 @@ Deno.serve(async (request: Request) => {
   });
   const { data: callerData, error: callerError } = await callerClient.auth.getUser(token);
   if (callerError || !callerData.user) {
+    console.error("Unable to validate the current administrator session.", callerError);
     return respond(401, { error: "The current session is invalid." });
   }
 

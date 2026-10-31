@@ -193,6 +193,12 @@
     });
     if (error) {
       const status = Number(error.context?.status || error.status);
+      if (status === 401) {
+        throw new Error("انتهت جلسة الإدارة أو لم تعد صالحة. سجّل الخروج ثم ادخل بحساب الإدارة مرة أخرى.");
+      }
+      if (status === 403) {
+        throw new Error("الحساب الحالي لا يملك صلاحية إدارة حسابات الطلاب.");
+      }
       if (status === 404) {
         throw new Error(
           "وظيفة إنشاء حسابات الطلاب غير منشورة على Supabase. انشر manage-student-auth ثم أعد المحاولة."

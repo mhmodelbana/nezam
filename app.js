@@ -3544,7 +3544,9 @@ async function initializeStudents() {
         await resetStudentPassword(student);
       } catch (error) {
         console.error("Unable to reset the student portal password.", error);
-        storageMessage.textContent = error?.message?.includes("وظيفة إنشاء حسابات الطلاب")
+        storageMessage.textContent = error?.message?.includes("وظيفة إنشاء حسابات الطلاب") ||
+          error?.message?.includes("انتهت جلسة الإدارة") ||
+          error?.message?.includes("لا يملك صلاحية إدارة حسابات الطلاب")
           ? error.message
           : "تعذر إنشاء كلمة مرور جديدة. حاول مرة أخرى.";
         storageMessage.hidden = false;
