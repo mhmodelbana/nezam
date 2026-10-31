@@ -28,42 +28,6 @@
 
 * { box-sizing: border-box; }
 
-body.app-loading > :not(.app-loading-screen) {
-  visibility: hidden;
-}
-
-.app-loading-screen {
-  position: fixed;
-  z-index: 10000;
-  inset: 0;
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 18px;
-  background: var(--page);
-  color: var(--green);
-  font-family: "Tajawal", sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.app-loading-spinner {
-  width: 44px;
-  height: 44px;
-  border: 4px solid rgba(36, 114, 122, .16);
-  border-top-color: var(--teal);
-  border-radius: 50%;
-  animation: app-loading-spin .8s linear infinite;
-}
-
-@keyframes app-loading-spin {
-  to { transform: rotate(360deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .app-loading-spinner { animation-duration: 1.8s; }
-}
-
 a {
   color: inherit;
   text-decoration: none;

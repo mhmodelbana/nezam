@@ -122,7 +122,7 @@ async function initializeLogin() {
 const subscriptionExpiryAlertDays = 15;
 let tripDirectionLabels = { outbound: "ذهاب للجامعة", return: "عودة" };
 let currentSystemSettings = {
-  companyName: "خدمات نقل الطلاب",
+  companyName: "",
   companyPhone: "",
   companyAddress: "",
   logoDataUrl: "",
@@ -259,8 +259,8 @@ function darkenHexColor(color, factor = .76) {
 async function applySystemSettings(settings = null) {
   currentSystemSettings = settings || await window.votaAPI.getSystemSettings();
   currentSystemSettings.companyName = typeof currentSystemSettings.companyName === "string"
-    ? currentSystemSettings.companyName.trim() || "خدمات نقل الطلاب"
-    : "خدمات نقل الطلاب";
+    ? currentSystemSettings.companyName.trim()
+    : "";
   const companyName = currentSystemSettings.companyName;
   tripDirectionLabels = { ...currentSystemSettings.tripLabels };
   const primaryColor = currentSystemSettings.primaryColor;
@@ -268,9 +268,14 @@ async function applySystemSettings(settings = null) {
   document.documentElement.style.setProperty("--green-dark", darkenHexColor(primaryColor));
   document.documentElement.style.setProperty("--teal", primaryColor);
 
-  document.title = document.title.replace(/\{\{companyName\}\}/g, companyName);
+  document.title = document.title
+    .replace(/\s*[|·]\s*\{\{companyName\}\}/g, companyName ? ` | ${companyName}` : "")
+    .replace(/\{\{companyName\}\}/g, companyName);
   document.querySelectorAll('meta[name="description"]').forEach((meta) => {
-    meta.content = meta.content.replace(/\{\{companyName\}\}/g, companyName);
+    meta.content = meta.content
+      .replace(/\s*\{\{companyName\}\}/g, companyName ? ` ${companyName}` : "")
+      .replace(/\s+([.,،])/g, "$1")
+      .trim();
   });
   document.querySelectorAll("[data-company-name]").forEach((element) => {
     element.textContent = companyName;
@@ -367,7 +372,7 @@ function printReceipt(student, subscription, payment) {
     .amount strong{display:block;color:#24483f;font-size:23px;margin-top:7px}
     footer{margin-top:22px;padding-top:10px;border-top:1px solid #d5dfd9;text-align:center;color:#687970;font-size:10px}
     @media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
-  </style></head><body><main><header><div class="brand"><span class="logo" aria-hidden="true">${logo}</span><span><h1>${escapeHtml(currentSystemSettings.companyName)}</h1><small>خدمات نقل الطلاب</small>${companyContact}</span></div><div class="receipt-title"><strong>إيصال استلام دفعة اشتراك</strong><span>رقم الإيصال: <b class="receipt-no">${escapeHtml(receiptNumber)}</b></span></div></header>
+  </style></head><body><main><header><div class="brand"><span class="logo" aria-hidden="true">${logo}</span><span><h1>${escapeHtml(currentSystemSettings.companyName)}</h1><small>إيصال إلكتروني</small>${companyContact}</span></div><div class="receipt-title"><strong>إيصال استلام دفعة اشتراك</strong><span>رقم الإيصال: <b class="receipt-no">${escapeHtml(receiptNumber)}</b></span></div></header>
   <dl><div><dt>اسم الطالب</dt><dd>${escapeHtml(student.name)}</dd></div><div><dt>كود الطالب</dt><dd dir="ltr">${escapeHtml(studentUsername(student.id))}</dd></div>
   <div><dt>الترم</dt><dd>${escapeHtml(`${subscription.termName} — ${subscription.academicYear}`)}</dd></div><div><dt>تاريخ الدفع</dt><dd>${escapeHtml(paidDate)}</dd></div>
   <div><dt>طريقة الدفع</dt><dd>${escapeHtml(methodLabels[payment.method] || "أخرى")}</dd></div><div><dt>رقم الهاتف</dt><dd dir="ltr">${escapeHtml(student.phone)}</dd></div></dl>
@@ -4680,7 +4685,7 @@ async function initializeStudentCards() {
     const brand = makeElement("div", "student-card-back-brand");
     brand.append(makeCompanyLogo("student-card-back-mark"));
     brand.append(makeElement("strong", "student-card-back-name", currentSystemSettings.companyName));
-    brand.append(makeElement("small", "student-card-back-caption", "خدمات نقل الطلاب"));
+    brand.append(makeElement("small", "student-card-back-caption", "بطاقة طالب"));
     back.append(brand);
     back.append(makeElement("p", "student-card-back-tagline", "طول ما أنت معانا، مشوارك في أمان"));
     return back;
@@ -4870,7 +4875,7 @@ async function initializeStudentCards() {
     brandLine.append(makeCompanyLogo("student-card-brand-mark"));
     const brandName = makeElement("span", "student-card-brand-name");
     brandName.append(makeElement("strong", "", currentSystemSettings.companyName));
-    brandName.append(makeElement("small", "", "خدمات نقل الطلاب"));
+    brandName.append(makeElement("small", "", "بطاقة طالب"));
     brandLine.append(brandName);
     card.append(brandLine);
 
@@ -4927,7 +4932,7 @@ async function initializeStudentCards() {
     cardBody.append(details);
     card.append(cardBody);
 
-    card.append(makeElement("div", "student-card-footer", `${currentSystemSettings.companyName} · خدمات نقل الطلاب`));
+    card.append(makeElement("div", "student-card-footer", currentSystemSettings.companyName));
     item.append(card);
     const back = createCardBack();
     item.append(back);
@@ -5909,9 +5914,6 @@ async function initializeApplication() {
     } else {
       window.votaData?.showError(text);
     }
-  } finally {
-    document.body.classList.remove("app-loading");
-    document.querySelector(".app-loading-screen")?.remove();
   }
 }
 

@@ -112,7 +112,7 @@ alter table public.profiles
 
 create table if not exists public.system_settings (
   id integer primary key check (id = 1),
-  company_name text not null default 'خدمات نقل الطلاب',
+  company_name text not null default '',
   company_phone text not null default '',
   company_address text not null default '',
   logo_data_url text not null default '',

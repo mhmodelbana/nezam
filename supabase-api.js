@@ -3,7 +3,7 @@
   if (!client) throw new Error("Supabase client is not initialized.");
 
   const defaultSettings = {
-    companyName: "خدمات نقل الطلاب",
+    companyName: "",
     companyPhone: "",
     companyAddress: "",
     logoDataUrl: "",
