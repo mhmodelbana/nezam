@@ -59,6 +59,11 @@ supabase functions deploy manage-student-auth
 supabase secrets set SUPABASE_SECRET_KEY=YOUR_ROTATED_SECRET_KEY SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
 ```
 
+تتطلب وظيفة الطلاب `verify_jwt = false` للسماح بطلب CORS التمهيدي
+(`OPTIONS`). تتحقق الوظيفة بنفسها من رمز الجلسة عبر `auth.getUser` ثم من دور
+الإدارة قبل تنفيذ أي إجراء؛ لا تحذف هذه الفحوص. يجب إعادة نشر الوظيفة بعد تعديل
+`supabase/config.toml` حتى يُطبّق الإعداد.
+
 ضع المفتاح السري بعد تدويره في **Secrets** الخاصة بوظائف Supabase فقط، وليس
 في ملفات المشروع أو كود المتصفح أو GitHub. يمكن ضبط المفتاح العام كسر للوظيفة،
 أو استخدام متغير Supabase الافتراضي `SUPABASE_ANON_KEY`. تتحقق الوظيفة من جلسة
