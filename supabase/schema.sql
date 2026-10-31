@@ -154,12 +154,157 @@ $$;
 drop trigger if exists students_set_updated_at on public.students;
 create trigger students_set_updated_at before update on public.students
   for each row execute function public.set_vota_updated_at();
+
+create or replace function public.prevent_duplicate_student_phone()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  normalized_phone text;
+begin
+  if tg_op = 'UPDATE' then
+    if new.phone is not distinct from old.phone then
+      return new;
+    end if;
+  end if;
+
+  normalized_phone := regexp_replace(coalesce(new.phone, ''), '[^0-9]', '', 'g');
+  if normalized_phone = '' then
+    return new;
+  end if;
+
+  perform pg_advisory_xact_lock(hashtextextended(normalized_phone, 0));
+  if exists (
+    select 1
+    from public.students existing
+    where existing.id <> new.id
+      and regexp_replace(coalesce(existing.phone, ''), '[^0-9]', '', 'g') = normalized_phone
+  ) then
+    raise exception 'A student with this phone number already exists.'
+      using errcode = '23505', constraint = 'students_normalized_phone_unique';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists students_prevent_duplicate_phone on public.students;
+create trigger students_prevent_duplicate_phone
+  before insert or update on public.students
+  for each row execute function public.prevent_duplicate_student_phone();
+
+create or replace function public.prevent_duplicate_term()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  normalized_name text;
+  normalized_year text;
+begin
+  if tg_op = 'UPDATE' then
+    if lower(btrim(new.name)) is not distinct from lower(btrim(old.name))
+      and lower(btrim(new.academic_year)) is not distinct from lower(btrim(old.academic_year)) then
+      return new;
+    end if;
+  end if;
+
+  normalized_name := lower(btrim(coalesce(new.name, '')));
+  normalized_year := lower(btrim(coalesce(new.academic_year, '')));
+  if normalized_name = '' or normalized_year = '' then
+    return new;
+  end if;
+
+  perform pg_advisory_xact_lock(hashtextextended(
+    length(normalized_name)::text || ':' || normalized_name ||
+    length(normalized_year)::text || ':' || normalized_year,
+    0
+  ));
+  if exists (
+    select 1
+    from public.terms existing
+    where existing.id <> new.id
+      and lower(btrim(existing.name)) = normalized_name
+      and lower(btrim(existing.academic_year)) = normalized_year
+  ) then
+    raise exception 'A term with this name and academic year already exists.'
+      using errcode = '23505', constraint = 'terms_name_year_unique';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists terms_prevent_duplicate_name_year on public.terms;
+create trigger terms_prevent_duplicate_name_year
+  before insert or update on public.terms
+  for each row execute function public.prevent_duplicate_term();
+
 drop trigger if exists terms_set_updated_at on public.terms;
 create trigger terms_set_updated_at before update on public.terms
   for each row execute function public.set_vota_updated_at();
 drop trigger if exists subscriptions_set_updated_at on public.subscriptions;
 create trigger subscriptions_set_updated_at before update on public.subscriptions
   for each row execute function public.set_vota_updated_at();
+
+create or replace function public.prevent_duplicate_payment_receipt()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $$
+declare
+  old_payments jsonb := '[]'::jsonb;
+begin
+  if tg_op = 'UPDATE' then
+    if new.payments is not distinct from old.payments then
+      return new;
+    end if;
+    old_payments := coalesce(old.payments, '[]'::jsonb);
+  end if;
+
+  if exists (
+    with new_receipts as (
+      select receipt_key, count(*) as receipt_count
+      from (
+        select coalesce(
+          nullif(payment->>'receiptNumber', ''),
+          nullif(payment->>'id', '')
+        ) as receipt_key
+        from jsonb_array_elements(coalesce(new.payments, '[]'::jsonb)) as entries(payment)
+      ) payment_keys
+      where receipt_key is not null
+      group by receipt_key
+    )
+    select 1
+    from new_receipts
+    where receipt_count > greatest(
+      (
+        select count(*)
+        from jsonb_array_elements(old_payments) as old_entries(payment)
+        where coalesce(
+          nullif(payment->>'receiptNumber', ''),
+          nullif(payment->>'id', '')
+        ) = new_receipts.receipt_key
+      ),
+      1
+    )
+  ) then
+    raise exception 'A payment with this receipt number already exists.'
+      using errcode = '23505', constraint = 'subscriptions_payment_receipt_unique';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists subscriptions_prevent_duplicate_payment_receipt on public.subscriptions;
+create trigger subscriptions_prevent_duplicate_payment_receipt
+  before insert or update on public.subscriptions
+  for each row execute function public.prevent_duplicate_payment_receipt();
+
 drop trigger if exists trip_schedules_set_updated_at on public.trip_schedules;
 create trigger trip_schedules_set_updated_at before update on public.trip_schedules
   for each row execute function public.set_vota_updated_at();

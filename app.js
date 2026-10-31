@@ -27,6 +27,31 @@ function initializeDateTime() {
   window.setInterval(updateDateTime, 1000);
 }
 
+function registerGuardedSubmit(form, handler) {
+  let isSubmitting = false;
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (isSubmitting) return;
+    isSubmitting = true;
+    const submitButtons = [...form.querySelectorAll(
+      'button[type="submit"], button:not([type]), input[type="submit"]'
+    )];
+    const disabledStates = submitButtons.map((button) => button.disabled);
+    submitButtons.forEach((button) => {
+      button.disabled = true;
+    });
+
+    try {
+      await handler(event);
+    } finally {
+      submitButtons.forEach((button, index) => {
+        button.disabled = disabledStates[index];
+      });
+      isSubmitting = false;
+    }
+  });
+}
+
 function initializeSessionLogout() {
   for (const link of document.querySelectorAll(".logout-link")) {
     link.addEventListener("click", async (event) => {
@@ -139,6 +164,10 @@ const tripStatusLabels = {
 
 function studentUsername(studentId) {
   return `VT-${String(studentId).padStart(4, "0")}`;
+}
+
+function normalizePhoneNumber(phone) {
+  return String(phone ?? "").replace(/\D/g, "");
 }
 
 function formatLocalDate(value) {
@@ -530,8 +559,7 @@ function initializeTripScheduleManager() {
     error.hidden = true;
   }
 
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  registerGuardedSubmit(form, async () => {
     error.textContent = "";
     error.hidden = true;
     if (!form.reportValidity()) return;
@@ -1773,8 +1801,7 @@ async function initializeStudentPortal() {
       updatePersonal();
     });
 
-    profileEditForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
+    registerGuardedSubmit(profileEditForm, async () => {
       profileEditMessage.hidden = true;
       if (!profileEditForm.reportValidity()) return;
 
@@ -2464,7 +2491,27 @@ async function initializeStudents() {
       return true;
     } catch (error) {
       console.error("Unable to save student registration and subscription.", error);
-      storageMessage.textContent = "تعذر حفظ بيانات الطالب والاشتراك. حاول مرة أخرى.";
+      const databaseErrorText = [
+        error?.message,
+        error?.details,
+        error?.hint,
+        error?.constraint,
+      ].filter(Boolean).join(" ").toLowerCase();
+      const duplicatePhone = error?.code === "23505" && (
+        databaseErrorText.includes("students_normalized_phone_unique") ||
+        databaseErrorText.includes("students_phone_key") ||
+        databaseErrorText.includes("student with this phone number already exists")
+      );
+      const duplicatePaymentReceipt = error?.code === "23505" &&
+        databaseErrorText.includes("subscriptions_payment_receipt_unique");
+      if (duplicatePhone) {
+        formError.textContent = "رقم الهاتف مسجل لطالب آخر بالفعل.";
+        storageMessage.textContent = "لا يمكن حفظ طالب برقم هاتف مستخدم في حساب آخر.";
+      } else if (duplicatePaymentReceipt) {
+        storageMessage.textContent = "لا يمكن تسجيل دفعة برقم إيصال مستخدم من قبل.";
+      } else {
+        storageMessage.textContent = "تعذر حفظ بيانات الطالب والاشتراك. حاول مرة أخرى.";
+      }
       storageMessage.hidden = false;
       return false;
     }
@@ -3108,8 +3155,7 @@ async function initializeStudents() {
     returnToStudentProfile();
   });
   renewalTermSelect.addEventListener("change", updateRenewalPreview);
-  paymentForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  registerGuardedSubmit(paymentForm, async () => {
     const error = document.querySelector("#student-payment-error");
     error.textContent = "";
     if (!storageReady || !paymentForm.reportValidity()) return;
@@ -3159,8 +3205,7 @@ async function initializeStudents() {
     printReceipt(student, subscription, payment);
     returnToStudentProfile();
   });
-  renewalForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  registerGuardedSubmit(renewalForm, async () => {
     const error = document.querySelector("#student-renewal-error");
     error.textContent = "";
     if (!storageReady || !renewalForm.reportValidity()) return;
@@ -3370,8 +3415,8 @@ async function initializeStudents() {
     returnToStudentProfile();
   });
 
-  studentForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  registerGuardedSubmit(studentForm, async () => {
+    formError.textContent = "";
     if (!storageReady) {
       formError.textContent = "تعذر حفظ بيانات الطالب. حاول تحديث الصفحة.";
       return;
@@ -3389,7 +3434,9 @@ async function initializeStudents() {
     }
 
     const duplicatePhone = students.some(
-      (student) => student.id !== editingStudentId && student.phone === phone
+      (student) =>
+        student.id !== editingStudentId &&
+        normalizePhoneNumber(student.phone) === normalizePhoneNumber(phone)
     );
     if (duplicatePhone) {
       formError.textContent = "رقم الهاتف مسجل لطالب آخر بالفعل.";
@@ -3429,7 +3476,7 @@ async function initializeStudents() {
           : subscription
       );
       if (!(await saveRegistration(updatedStudents, updatedSubscriptions))) {
-        formError.textContent = "لم يتم حفظ التعديلات. حاول مرة أخرى.";
+        if (!formError.textContent) formError.textContent = "لم يتم حفظ التعديلات. حاول مرة أخرى.";
         return;
       }
       students = updatedStudents;
@@ -3510,7 +3557,7 @@ async function initializeStudents() {
     if (!(await saveRegistration(updatedStudents, updatedSubscriptions))) {
       nextStudentId--;
       nextSubscriptionId--;
-      formError.textContent = "لم يتم حفظ بيانات الطالب. حاول مرة أخرى.";
+      if (!formError.textContent) formError.textContent = "لم يتم حفظ بيانات الطالب. حاول مرة أخرى.";
       return;
     }
 
@@ -3771,8 +3818,7 @@ async function initializeSettings() {
       renderLogoPreview();
       showSystemError("");
     });
-    systemSettingsForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
+    registerGuardedSubmit(systemSettingsForm, async () => {
       systemSuccess.hidden = true;
       showSystemError("");
       if (!systemSettingsForm.reportValidity()) return;
@@ -3927,6 +3973,15 @@ async function initializeSettings() {
       return true;
     } catch (error) {
       console.error("Unable to save terms.", error);
+      const databaseErrorText = [
+        error?.message,
+        error?.details,
+        error?.hint,
+        error?.constraint,
+      ].filter(Boolean).join(" ").toLowerCase();
+      if (error?.code === "23505" && databaseErrorText.includes("terms_name_year_unique")) {
+        termError.textContent = "الترم مسجل بالفعل لهذا العام الدراسي.";
+      }
       storageError.textContent = "تعذر حفظ إعدادات الترم في قاعدة البيانات.";
       storageError.hidden = false;
       return false;
@@ -4019,8 +4074,7 @@ async function initializeSettings() {
     editingTermId = null;
   }
 
-  termForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  registerGuardedSubmit(termForm, async () => {
     termError.textContent = "";
     if (!storageReady || !termForm.reportValidity()) return;
 
@@ -4036,8 +4090,8 @@ async function initializeSettings() {
       return;
     }
     const duplicate = terms.some((term) =>
-      term.name.toLocaleLowerCase("ar") === name.toLocaleLowerCase("ar") &&
-      term.academicYear.toLocaleLowerCase("ar") === academicYear.toLocaleLowerCase("ar")
+      term.name.trim().toLocaleLowerCase("ar") === name.toLocaleLowerCase("ar") &&
+      term.academicYear.trim().toLocaleLowerCase("ar") === academicYear.toLocaleLowerCase("ar")
     );
     if (duplicate) {
       termError.textContent = "الترم مسجل بالفعل لهذا العام الدراسي.";
@@ -4084,8 +4138,7 @@ async function initializeSettings() {
     renderTerms();
   });
 
-  termPriceForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  registerGuardedSubmit(termPriceForm, async () => {
     priceError.textContent = "";
     if (!storageReady || !termPriceForm.reportValidity()) return;
     const value = Number(termPriceForm.elements.price.value);
@@ -4608,8 +4661,7 @@ async function initializeSubscriptions() {
     paymentError.textContent = "";
   });
 
-  paymentForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  registerGuardedSubmit(paymentForm, async () => {
     paymentError.textContent = "";
     if (!storageReady || !paymentForm.reportValidity()) return;
     const subscription = subscriptions.find((item) => item.id === activeSubscriptionId);
