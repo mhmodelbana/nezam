@@ -43,7 +43,7 @@ function initializeSessionLogout() {
   }
 }
 
-function initializeLogin() {
+async function initializeLogin() {
   const loginForm = document.querySelector("#login-form");
   if (!loginForm) return;
 
@@ -56,14 +56,17 @@ function initializeLogin() {
   const submitLabel = submitButton.querySelector("span") || submitButton;
   const defaultSubmitLabel = submitLabel.textContent;
 
-  window.votaData.hasAdministrator().then((hasAdministrator) => {
+  try {
+    const hasAdministrator = await window.votaData.hasAdministrator();
     loginForm.hidden = !hasAdministrator;
     if (setupMessage) setupMessage.hidden = hasAdministrator;
-  }).catch((error) => {
+  } catch (error) {
     console.error("Unable to check Supabase administrator setup.", error);
     formMessage.textContent = "تعذر الاتصال بقاعدة البيانات. تحقق من إعدادات Supabase.";
     formMessage.hidden = false;
-  });
+    loginForm.hidden = true;
+    return;
+  }
 
   passwordToggle.addEventListener("click", () => {
     const isPasswordHidden = passwordInput.type === "password";
@@ -5842,7 +5845,7 @@ async function initializeApplication() {
 
     // Initialize login form only on index.html
     if (currentPage === 'index.html') {
-      initializeLogin();
+      await initializeLogin();
       // If already logged in, redirect to appropriate page
       if (shouldInitialize) {
         if (window.votaData.role === 'admin') {
@@ -5906,6 +5909,9 @@ async function initializeApplication() {
     } else {
       window.votaData?.showError(text);
     }
+  } finally {
+    document.body.classList.remove("app-loading");
+    document.querySelector(".app-loading-screen")?.remove();
   }
 }
 

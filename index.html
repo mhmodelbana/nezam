@@ -16,7 +16,11 @@
   <script src="supabase-api.js" defer></script>
   <script src="app.js" defer></script>
 </head>
-<body class="login-page">
+<body class="login-page app-loading">
+  <div class="app-loading-screen" role="status" aria-live="polite">
+    <span class="app-loading-spinner" aria-hidden="true"></span>
+    <span>جاري تحميل البيانات...</span>
+  </div>
   <main class="login-layout">
     <aside class="login-showcase" aria-label="عن بوابة خدمات الطلاب">
       <div class="showcase-orbit showcase-orbit-one" aria-hidden="true"></div>

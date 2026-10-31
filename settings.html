@@ -16,7 +16,11 @@
   <script src="supabase-api.js" defer></script>
   <script src="app.js" defer></script>
 </head>
-<body class="settings-page">
+<body class="settings-page app-loading">
+  <div class="app-loading-screen" role="status" aria-live="polite">
+    <span class="app-loading-spinner" aria-hidden="true"></span>
+    <span>جاري تحميل البيانات...</span>
+  </div>
   <header class="topbar">
     <a class="brand" href="dashboard.html" aria-label="العودة للوحة التحكم">
       <span class="brand-mark" aria-hidden="true">v.</span>

@@ -16,7 +16,11 @@
   <script src="supabase-api.js" defer></script>
   <script src="app.js" defer></script>
 </head>
-<body class="portal-page portal-section-page portal-subscription-page">
+<body class="portal-page portal-section-page portal-subscription-page app-loading">
+  <div class="app-loading-screen" role="status" aria-live="polite">
+    <span class="app-loading-spinner" aria-hidden="true"></span>
+    <span>جاري تحميل البيانات...</span>
+  </div>
   <header class="topbar">
     <a class="brand" href="portal.html" aria-label="العودة إلى بوابة الطالب"><span class="brand-mark" aria-hidden="true">v.</span><span data-company-name>خدمات نقل الطلاب</span></a>
     <div class="date-time" aria-label="التاريخ والوقت"><span id="current-date"></span><span class="date-time-divider" aria-hidden="true"></span><time id="current-time"></time></div>
