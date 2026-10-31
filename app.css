@@ -55,6 +55,88 @@ html:not(.company-name-loaded) [data-company-name]:empty::before {
   }
 }
 
+.portal-page [data-portal-loading]:empty::before {
+  content: "";
+  width: min(72%, 9rem);
+  height: .85em;
+  display: block;
+  border-radius: .35em;
+  background: linear-gradient(
+    100deg,
+    rgba(36, 114, 122, .08) 25%,
+    rgba(36, 114, 122, .19) 45%,
+    rgba(36, 114, 122, .08) 65%
+  );
+  background-size: 220% 100%;
+  animation: company-name-shimmer 1.4s ease-in-out infinite;
+}
+
+.portal-page .portal-details dd[data-portal-loading] {
+  color: transparent;
+}
+
+.portal-page .portal-student-photo-detail dd[data-portal-loading]::before {
+  content: "";
+  width: 200px;
+  height: 200px;
+  display: block;
+  border-radius: 25px;
+  background: linear-gradient(
+    100deg,
+    rgba(36, 114, 122, .08) 25%,
+    rgba(36, 114, 122, .19) 45%,
+    rgba(36, 114, 122, .08) 65%
+  );
+  background-size: 220% 100%;
+  animation: company-name-shimmer 1.4s ease-in-out infinite;
+}
+
+.portal-page .portal-home-photo-placeholder[data-portal-loading] {
+  background: linear-gradient(
+    100deg,
+    rgba(36, 114, 122, .08) 25%,
+    rgba(36, 114, 122, .19) 45%,
+    rgba(36, 114, 122, .08) 65%
+  );
+  background-size: 220% 100%;
+  animation: company-name-shimmer 1.4s ease-in-out infinite;
+}
+
+.portal-page img[data-portal-loading] {
+  background: linear-gradient(
+    100deg,
+    rgba(36, 114, 122, .08) 25%,
+    rgba(36, 114, 122, .19) 45%,
+    rgba(36, 114, 122, .08) 65%
+  );
+  background-size: 220% 100%;
+  animation: company-name-shimmer 1.4s ease-in-out infinite;
+}
+
+.portal-page #portal-notification-list[data-portal-loading]::before,
+.portal-page #trip-schedule-cards[data-portal-loading]::before {
+  content: "";
+  min-height: 92px;
+  display: block;
+  border: 1px solid rgba(36, 114, 122, .08);
+  border-radius: 14px;
+  background: linear-gradient(
+    100deg,
+    rgba(36, 114, 122, .06) 25%,
+    rgba(36, 114, 122, .15) 45%,
+    rgba(36, 114, 122, .06) 65%
+  );
+  background-size: 220% 100%;
+  animation: company-name-shimmer 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-page [data-portal-loading]::before,
+  .portal-page [data-portal-loading] {
+    animation: none;
+  }
+}
+
 a {
   color: inherit;
   text-decoration: none;

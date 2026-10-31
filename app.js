@@ -960,12 +960,30 @@ async function initializeStudentPortal() {
   const notificationTrigger = document.querySelector("#open-portal-notifications");
   const closeNotificationsButton = document.querySelector("#close-portal-notifications");
   const sectionName = page.dataset.portalSection;
+  const homePhotoPlaceholder = page.querySelector("#portal-home-photo-placeholder");
+  const homePhotoMark = page.querySelector("#portal-home-photo-mark");
+  if (homePhotoPlaceholder) {
+    homePhotoPlaceholder.hidden = false;
+    homePhotoPlaceholder.dataset.portalLoading = "true";
+    if (homePhotoMark) homePhotoMark.hidden = true;
+  }
+  page.querySelectorAll(
+    ".portal-details dd, #portal-student-name, #trip-page-date, #trip-page-pickup, #trip-page-eligibility"
+  ).forEach((element) => {
+    element.dataset.portalLoading = "true";
+  });
+  if (notificationList) notificationList.dataset.portalLoading = "true";
+
   if (window.votaData.role !== "student" || !window.votaData.studentId) {
     message.textContent = "سجّل دخولك بحساب الطالب لعرض ملفك.";
     message.hidden = false;
+    page.querySelectorAll("[data-portal-loading]").forEach((element) => {
+      delete element.dataset.portalLoading;
+    });
     return;
   }
 
+  profileSection.hidden = false;
   let students;
   try {
     students = await readStudentRecords();
@@ -973,12 +991,20 @@ async function initializeStudentPortal() {
     console.error("Unable to load the student portal profile.", error);
     message.textContent = "تعذر تحميل بيانات الحساب.";
     message.hidden = false;
+    profileSection.hidden = true;
+    page.querySelectorAll("[data-portal-loading]").forEach((element) => {
+      delete element.dataset.portalLoading;
+    });
     return;
   }
   const student = students.find((record) => record.id === window.votaData.studentId);
   if (!student || student.archivedAt) {
     message.textContent = "الحساب غير متاح. سجّل الدخول مرة أخرى.";
     message.hidden = false;
+    profileSection.hidden = true;
+    page.querySelectorAll("[data-portal-loading]").forEach((element) => {
+      delete element.dataset.portalLoading;
+    });
     return;
   }
 
@@ -989,7 +1015,10 @@ async function initializeStudentPortal() {
     }).format(cents / 100)} ج.م`;
   function setText(id, value) {
     const element = document.querySelector(`#${id}`);
-    if (element) element.textContent = value || "—";
+    if (element) {
+      element.textContent = value || "—";
+      delete element.dataset.portalLoading;
+    }
   }
 
   function updateHome() {
@@ -1005,7 +1034,13 @@ async function initializeStudentPortal() {
       photo.hidden = true;
       placeholder.hidden = false;
     };
-    photo.onerror = showPlaceholder;
+    photo.onload = () => {
+      delete photo.dataset.portalLoading;
+    };
+    photo.onerror = () => {
+      delete photo.dataset.portalLoading;
+      showPlaceholder();
+    };
     logo.onerror = () => {
       logo.hidden = true;
       mark.hidden = false;
@@ -1013,9 +1048,11 @@ async function initializeStudentPortal() {
     if (photoDataUrl) {
       placeholder.hidden = true;
       photo.hidden = false;
+      photo.dataset.portalLoading = "true";
       photo.src = photoDataUrl;
     } else {
       photo.removeAttribute("src");
+      delete photo.dataset.portalLoading;
       showPlaceholder();
     }
 
@@ -1028,6 +1065,7 @@ async function initializeStudentPortal() {
       logo.hidden = true;
       mark.hidden = false;
     }
+    delete placeholder.dataset.portalLoading;
   }
 
   async function updateNotifications() {
@@ -1159,11 +1197,13 @@ async function initializeStudentPortal() {
       notificationMore.textContent = `يعرض أحدث ${new Intl.NumberFormat("ar-EG").format(visibleEventsCount)} تحديثات.`;
       notificationMore.hidden = activeEvents.length <= visibleEventsCount;
       notificationError.hidden = true;
+      delete notificationList.dataset.portalLoading;
     } catch (error) {
       console.error("Unable to load student notifications.", error);
       notificationError.textContent = "تعذر تحميل التحديثات. حاول تحديث الصفحة.";
       notificationError.hidden = false;
       notificationEmpty.hidden = true;
+      delete notificationList.dataset.portalLoading;
     }
   }
 
@@ -1197,7 +1237,13 @@ async function initializeStudentPortal() {
         photo.hidden = true;
         photoPlaceholder.hidden = false;
       };
-      photo.onerror = showPlaceholder;
+      photo.onload = () => {
+        delete photo.dataset.portalLoading;
+      };
+      photo.onerror = () => {
+        delete photo.dataset.portalLoading;
+        showPlaceholder();
+      };
       photoLogo.onerror = () => {
         photoLogo.hidden = true;
         photoMark.hidden = false;
@@ -1205,9 +1251,11 @@ async function initializeStudentPortal() {
       if (photoDataUrl) {
         photoPlaceholder.hidden = true;
         photo.hidden = false;
+        photo.dataset.portalLoading = "true";
         photo.src = photoDataUrl;
       } else {
         photo.removeAttribute("src");
+        delete photo.dataset.portalLoading;
         showPlaceholder();
       }
       if (currentSystemSettings.logoDataUrl) {
@@ -1219,6 +1267,7 @@ async function initializeStudentPortal() {
         photoLogo.hidden = true;
         photoMark.hidden = false;
       }
+      delete photo.closest("dd")?.dataset.portalLoading;
     }
     try {
       const terms = await window.votaAPI.getTerms();
@@ -1264,6 +1313,11 @@ async function initializeStudentPortal() {
       console.error("Unable to load student subscription details.", error);
       message.textContent = "تعذر تحميل بيانات الاشتراك.";
       message.hidden = false;
+      page.querySelectorAll(".portal-details dd[data-portal-loading]").forEach((element) => {
+        delete element.dataset.portalLoading;
+      });
+      const empty = document.querySelector("#portal-no-payments");
+      if (empty) empty.hidden = true;
       return;
     }
     const currentSubscription = subscriptions.find(
@@ -1318,7 +1372,7 @@ async function initializeStudentPortal() {
     const directionButtons = [...document.querySelectorAll("[data-trip-direction]")];
     const eligibilityCard = document.querySelector("#trip-eligibility-card");
     let selectedDirection = "outbound";
-    cards.hidden = true;
+    cards.hidden = false;
     empty.hidden = true;
     setText("trip-page-date", formatTripCardDate(localDateString()));
     setText("trip-page-pickup", student.pickup);
@@ -1336,6 +1390,10 @@ async function initializeStudentPortal() {
     }
 
     async function updateAvailableTimes() {
+      cards.dataset.portalLoading = "true";
+      cards.replaceChildren();
+      cards.hidden = false;
+      empty.hidden = true;
       try {
         const schedules = selectedDirection
           ? (await readTripSchedules())
@@ -1437,6 +1495,7 @@ async function initializeStudentPortal() {
           card.append(top, timeBlock, details, action);
           cards.append(card);
         }
+        delete cards.dataset.portalLoading;
         empty.hidden = !selectedDirection || schedules.length > 0;
         empty.textContent = selectedDirection
           ? "لا توجد مواعيد مضافة لهذا الاتجاه حاليًا."
@@ -1445,6 +1504,7 @@ async function initializeStudentPortal() {
       } catch (scheduleError) {
         console.error("Unable to load trip schedules.", scheduleError);
         cards.replaceChildren();
+        delete cards.dataset.portalLoading;
         empty.hidden = true;
         cards.hidden = !selectedDirection;
         showBookingError("تعذر تحميل مواعيد الرحلات. أعد تحميل الصفحة أو تواصل مع الإدارة.");
@@ -1531,6 +1591,7 @@ async function initializeStudentPortal() {
   profileSection.hidden = needsPasswordChange;
   if (appNavigation) appNavigation.hidden = needsPasswordChange;
   if (notificationTrigger) notificationTrigger.hidden = needsPasswordChange;
+  setText("portal-student-name", student.name);
   if (notificationTrigger && notificationDialog) {
     notificationTrigger.addEventListener("click", () => {
       if (notificationDialog.open) {
@@ -1567,7 +1628,7 @@ async function initializeStudentPortal() {
     });
   }
   if (!needsPasswordChange) {
-    await updateNotifications();
+    void updateNotifications();
     if (sectionName === "home") updateHome();
     if (sectionName === "personal") await updatePersonal();
     if (sectionName === "subscription") updateSubscription();
@@ -1595,7 +1656,7 @@ async function initializeStudentPortal() {
       profileSection.hidden = false;
       if (appNavigation) appNavigation.hidden = false;
       if (notificationTrigger) notificationTrigger.hidden = false;
-      await updateNotifications();
+      void updateNotifications();
       if (sectionName === "home") updateHome();
       if (sectionName === "personal") await updatePersonal();
       if (sectionName === "subscription") updateSubscription();
