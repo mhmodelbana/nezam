@@ -280,6 +280,7 @@ async function applySystemSettings(settings = null) {
   document.querySelectorAll("[data-company-name]").forEach((element) => {
     element.textContent = companyName;
   });
+  document.documentElement.classList.add("company-name-loaded");
 
   document.querySelectorAll(".brand, .login-brand, .login-mobile-label").forEach((brand) => {
     const mark = brand.querySelector(".brand-mark");
@@ -5897,6 +5898,7 @@ async function initializeApplication() {
     await initializeStudentCards();
   } catch (error) {
     console.error("Unable to initialize the Supabase application.", error);
+    document.documentElement.classList.add("company-name-loaded");
     const message = document.querySelector("#form-message") ||
       document.querySelector("#portal-message") ||
       document.querySelector("#admin-trips-error") ||
