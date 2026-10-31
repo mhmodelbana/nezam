@@ -5891,7 +5891,11 @@ async function initializeApplication() {
       document.querySelector("#storage-message") ||
       document.querySelector("#settings-storage-error") ||
       document.querySelector("#subscriptions-storage-error");
-    const text = "تعذر تحميل البيانات من قاعدة البيانات. تحقق من اتصال Supabase ثم حاول مرة أخرى.";
+    const missingSettingsTable = error?.code === "PGRST205" &&
+      String(error.message || "").includes("system_settings");
+    const text = missingSettingsTable
+      ? "جدول إعدادات النظام غير موجود في قاعدة البيانات. شغّل ملف supabase/schema.sql كاملًا من SQL Editor في Supabase ثم أعد تحميل الصفحة."
+      : "تعذر تحميل البيانات من قاعدة البيانات. تحقق من اتصال Supabase ثم حاول مرة أخرى.";
     if (message) {
       message.textContent = text;
       message.hidden = false;
