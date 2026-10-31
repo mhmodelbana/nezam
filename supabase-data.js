@@ -183,7 +183,15 @@
     const { data, error } = await client.functions.invoke("manage-student-auth", {
       body: { action, studentId, password },
     });
-    if (error) throw error;
+    if (error) {
+      const status = Number(error.context?.status || error.status);
+      if (status === 404) {
+        throw new Error(
+          "وظيفة إنشاء حسابات الطلاب غير منشورة على Supabase. انشر manage-student-auth ثم أعد المحاولة."
+        );
+      }
+      throw error;
+    }
     if (action !== "delete" && !data?.userId) {
       throw new Error("تعذر ربط حساب الطالب بقاعدة البيانات.");
     }

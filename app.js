@@ -3445,8 +3445,9 @@ async function initializeStudents() {
       renderStudents();
     } catch (error) {
       console.error("Unable to create the Supabase student account.", error);
-      formError.textContent =
-        "تم حفظ بيانات الطالب، لكن تعذر إنشاء حسابه. استخدم زر كلمة المرور لإعادة المحاولة.";
+      formError.textContent = error?.message?.includes("وظيفة إنشاء حسابات الطلاب")
+        ? `تم حفظ بيانات الطالب، لكن ${error.message}`
+        : "تم حفظ بيانات الطالب، لكن تعذر إنشاء حسابه. استخدم زر كلمة المرور لإعادة المحاولة.";
       renderStudents();
     }
   });
@@ -3544,7 +3545,9 @@ async function initializeStudents() {
         await resetStudentPassword(student);
       } catch (error) {
         console.error("Unable to reset the student portal password.", error);
-        storageMessage.textContent = "تعذر إنشاء كلمة مرور جديدة. حاول مرة أخرى.";
+        storageMessage.textContent = error?.message?.includes("وظيفة إنشاء حسابات الطلاب")
+          ? error.message
+          : "تعذر إنشاء كلمة مرور جديدة. حاول مرة أخرى.";
         storageMessage.hidden = false;
         return false;
       }
