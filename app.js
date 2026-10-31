@@ -5834,7 +5834,7 @@ async function initializeApplication() {
     await applySystemSettings();
     initializeSettingsTabs();
 
-    const currentPage = window.location.pathname.split('/').pop();
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
     // Initialize login form only on index.html
     if (currentPage === 'index.html') {
